@@ -1,0 +1,13 @@
+{
+  "goal_id": "goal-3eb8ca2ac25f",
+  "goal_title": "Indian Electric Vehicle Market Research & Business Opportunity Report",
+  "planning_phase": "completed",
+  "tasks_planned": 0,
+  "agents_assigned": 3,
+  "task_type": "Business Strategy",
+  "execution_phase": "skipped_ollama_offline",
+  "limitation": "Ollama not running. Start with: ollama serve && ollama pull qwen3:4b",
+  "web_research_available": false,
+  "passed": false,
+  "note": "Planning passed. Execution requires Ollama to be running."
+}
