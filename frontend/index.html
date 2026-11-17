@@ -1005,6 +1005,159 @@
     .score-badge.high { background: rgba(16, 185, 129, 0.15); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.3); }
     .score-badge.med { background: rgba(245, 158, 11, 0.15); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.3); }
     .score-badge.low { background: rgba(239, 68, 68, 0.15); color: #F87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+
+    /* PRODUCT FOUNDRY STYLES */
+    .foundry-stages-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .foundry-stage-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px 14px;
+      position: relative;
+      transition: all 0.2s ease;
+    }
+    .foundry-stage-card.active {
+      border-color: var(--accent);
+      background: rgba(245, 158, 11, 0.05);
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.1);
+    }
+    .foundry-stage-card.completed {
+      border-color: var(--status-completed);
+      background: rgba(16, 185, 129, 0.03);
+    }
+    .foundry-stage-card.failed {
+      border-color: var(--status-failed);
+      background: rgba(239, 68, 68, 0.05);
+    }
+    .foundry-stage-num {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }
+    .foundry-stage-name {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .foundry-stage-sub {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+    .foundry-layout {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 1100px) {
+      .foundry-layout {
+        grid-template-columns: 1fr;
+      }
+      .foundry-stages-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    .foundry-presets-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .foundry-preset-chip {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
+      border-radius: 3px;
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      padding: 3px 8px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .foundry-preset-chip:hover {
+      border-color: var(--accent);
+      color: var(--text);
+      background: rgba(245, 158, 11, 0.1);
+    }
+    .project-card-item {
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 12px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .project-card-item:hover, .project-card-item.selected {
+      border-color: var(--accent);
+      background: rgba(245, 158, 11, 0.04);
+    }
+    .foundry-code-viewer {
+      background: #0d0d0d;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: #e5e5e5;
+      padding: 14px;
+      overflow: auto;
+      max-height: 440px;
+      white-space: pre;
+      line-height: 1.5;
+    }
+    .foundry-test-console {
+      background: #080808;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: #34D399;
+      padding: 14px;
+      overflow: auto;
+      max-height: 240px;
+      white-space: pre-wrap;
+      line-height: 1.45;
+    }
+    .cert-score-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .cert-stat-badge {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 10px;
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      text-align: center;
+    }
+    .cert-stat-val {
+      font-family: var(--font-mono);
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+    .cert-stat-lbl {
+      font-size: 10px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      margin-top: 4px;
+      letter-spacing: 0.05em;
+    }
   </style>
 </head>
 <body>
@@ -1056,6 +1209,11 @@
           <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
           <span>Task Board</span>
           <span class="nav-badge" id="navPendingTasks">0</span>
+        </li>
+        <li class="nav-item" data-page="foundry" onclick="navigate('foundry')">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+          <span>Product Foundry</span>
+          <span class="nav-badge" id="navFoundryCount">0</span>
         </li>
         <li class="nav-item" data-page="timeline" onclick="navigate('timeline')">
           <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
@@ -1545,6 +1703,208 @@
         </div>
       </section>
 
+      <!-- =================================================================== -->
+      <!-- PAGE 10: PRODUCT FOUNDRY (AUTONOMOUS CODE & TEST ENGINE) -->
+      <!-- =================================================================== -->
+      <section id="page-foundry" class="page-view">
+        <div class="page-header">
+          <div>
+            <div class="page-title">
+              <span>Autonomous Product Foundry</span>
+              <span class="brand-badge" style="background: rgba(16, 185, 129, 0.15); color: #34D399; border-color: rgba(16, 185, 129, 0.3);">Stage 1-5 Engine</span>
+            </div>
+            <div class="page-subtitle">End-to-end software factory: specification, multi-file code synthesis, SAST security audit, sandboxed test execution & self-healing, and packaging certification.</div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="focusFoundryInput()">+ New Product Build</button>
+        </div>
+
+        <!-- 5-Stage Visual Workflow Stepper -->
+        <div class="foundry-stages-grid">
+          <div class="foundry-stage-card" id="stageCard-spec">
+            <div class="foundry-stage-num">Stage 01</div>
+            <div class="foundry-stage-name">Specification</div>
+            <div class="foundry-stage-sub">Forge-02 Architect manifest</div>
+          </div>
+          <div class="foundry-stage-card" id="stageCard-synth">
+            <div class="foundry-stage-num">Stage 02</div>
+            <div class="foundry-stage-name">Code Synthesis</div>
+            <div class="foundry-stage-sub">Team 5 Engineers multi-file</div>
+          </div>
+          <div class="foundry-stage-card" id="stageCard-sec">
+            <div class="foundry-stage-num">Stage 03</div>
+            <div class="foundry-stage-name">SAST Security Audit</div>
+            <div class="foundry-stage-sub">Cipher-04 Threat review</div>
+          </div>
+          <div class="foundry-stage-card" id="stageCard-test">
+            <div class="foundry-stage-num">Stage 04</div>
+            <div class="foundry-stage-name">Sandboxed Tests & Repairs</div>
+            <div class="foundry-stage-sub">Forge-07 Autonomous debugger</div>
+          </div>
+          <div class="foundry-stage-card" id="stageCard-cert">
+            <div class="foundry-stage-num">Stage 05</div>
+            <div class="foundry-stage-name">Launch Certification</div>
+            <div class="foundry-stage-sub">Argus Team 9 Critic verdict</div>
+          </div>
+        </div>
+
+        <!-- Main Workspace Split Layout -->
+        <div class="foundry-layout">
+          <!-- Left Column: Builder & Project List -->
+          <div style="display: flex; flex-direction: column; gap: 16px;">
+            <!-- Builder Panel -->
+            <div class="panel">
+              <div class="panel-header">
+                <div class="panel-title">Synthesize New Software Product</div>
+                <span style="font-family: var(--font-mono); font-size: 10px; color: var(--accent);">Direct Execution</span>
+              </div>
+              <div class="panel-body">
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                  <div>
+                    <label style="font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary); display: block; margin-bottom: 4px;">Product Intent / Specification</label>
+                    <textarea id="foundryIntentInput" class="goal-textarea" style="min-height: 85px;" placeholder="Describe the software product, required modules, edge cases, and test assertions..."></textarea>
+                  </div>
+                  <div>
+                    <span style="font-family: var(--font-mono); font-size: 10px; color: var(--text-muted);">Quick Presets:</span>
+                    <div class="foundry-presets-bar">
+                      <span class="foundry-preset-chip" onclick="setFoundryPreset('Build a high-performance in-memory key-value cache with TTL expiration, thread-safe locking, and comprehensive pytest suite.')">KV Store (TTL)</span>
+                      <span class="foundry-preset-chip" onclick="setFoundryPreset('Build a token bucket rate limiter middleware with burst tolerance, refill rates, and unit test assertions.')">Rate Limiter</span>
+                      <span class="foundry-preset-chip" onclick="setFoundryPreset('Build a URL shortener service with base62 encoding, SQLite persistence, collision handling, and automated tests.')">URL Shortener</span>
+                      <span class="foundry-preset-chip" onclick="setFoundryPreset('Build a JWT token generator, validator, and role-based access control engine with test fixtures.')">JWT Auth & RBAC</span>
+                    </div>
+                  </div>
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                    <div>
+                      <label style="font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 2px;">Slug (optional)</label>
+                      <input id="foundrySlugInput" class="filter-search" style="width: 100%; font-size: 11px; padding: 5px 8px;" placeholder="e.g. kv-store-ttl" />
+                    </div>
+                    <div>
+                      <label style="font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 2px;">Name (optional)</label>
+                      <input id="foundryNameInput" class="filter-search" style="width: 100%; font-size: 11px; padding: 5px 8px;" placeholder="e.g. KV Store Engine" />
+                    </div>
+                  </div>
+                  <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 4px;">
+                    <label style="font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary); display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                      <input type="checkbox" id="foundryAsyncCheck" />
+                      <span>Run in background (streaming)</span>
+                    </label>
+                  </div>
+                  <button id="btnBuildFoundry" class="btn btn-primary" style="justify-content: center; padding: 8px;" onclick="launchFoundryBuild()">
+                    <span id="btnBuildFoundryText">[ INITIATE AUTONOMOUS BUILD ]</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Workspace Projects List -->
+            <div class="panel">
+              <div class="panel-header">
+                <div class="panel-title">Synthesized Workspace Projects</div>
+                <span id="foundryProjectCount" style="font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary);">0 projects</span>
+              </div>
+              <div class="panel-body" style="padding: 10px;">
+                <div id="foundryProjectsList" style="display: flex; flex-direction: column; gap: 8px; max-height: 380px; overflow-y: auto;">
+                  <div style="text-align: center; color: var(--text-muted); font-size: 11px; padding: 20px;">No projects synthesized yet. Launch a build above.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: Project Explorer & Execution Console -->
+          <div style="display: flex; flex-direction: column; gap: 16px;">
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <div id="foundrySelectedProjectTitle" class="panel-title">Project Workspace Explorer</div>
+                  <div id="foundrySelectedProjectPath" style="font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); margin-top: 2px;">workspace/projects/...</div>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                  <button id="btnRunFoundryTests" class="btn btn-sm btn-primary" onclick="runCurrentFoundryTests()" disabled>▶ Run Automated Tests</button>
+                  <button class="btn btn-sm" onclick="refreshSelectedFoundryProject()">↻ Reload</button>
+                </div>
+              </div>
+
+              <!-- Sub-Tabs Bar -->
+              <div style="display: flex; gap: 4px; padding: 8px 16px; border-bottom: 1px solid var(--border); background: rgba(255, 255, 255, 0.01);">
+                <button id="tabFoundryFilesBtn" class="btn btn-sm btn-primary" onclick="switchFoundryTab('files')">Source Code & Manifest</button>
+                <button id="tabFoundryTestsBtn" class="btn btn-sm" onclick="switchFoundryTab('tests')">Test Runner & Repairs</button>
+                <button id="tabFoundryCertBtn" class="btn btn-sm" onclick="switchFoundryTab('cert')">Launch Certification</button>
+                <button id="tabFoundryReadmeBtn" class="btn btn-sm" onclick="switchFoundryTab('readme')">README.md</button>
+              </div>
+
+              <div class="panel-body">
+                <!-- TAB 1: FILES & SOURCE CODE -->
+                <div id="foundryTabFiles" style="display: grid; grid-template-columns: 240px 1fr; gap: 14px;">
+                  <div style="display: flex; flex-direction: column; gap: 6px;">
+                    <div style="font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary); text-transform: uppercase;">Project Files</div>
+                    <div id="foundryFileList" style="display: flex; flex-direction: column; gap: 4px; max-height: 440px; overflow-y: auto;">
+                      <div style="color: var(--text-muted); font-size: 11px; padding: 10px;">Select a project to inspect files.</div>
+                    </div>
+                  </div>
+                  <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <div id="foundryFileMetaHeader" style="display: flex; justify-content: space-between; align-items: center; font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary);">
+                      <span id="foundryActiveFileName">No file selected</span>
+                      <span id="foundryActiveFileStats"></span>
+                    </div>
+                    <div id="foundryCodeViewer" class="foundry-code-viewer"># Select a file from the left panel to inspect synthesized source code.</div>
+                  </div>
+                </div>
+
+                <!-- TAB 2: TEST RUNNER & REPAIRS -->
+                <div id="foundryTabTests" style="display: none; flex-direction: column; gap: 12px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--text);">Sandboxed Subprocess Execution Output</div>
+                    <span id="foundryTestRunnerStatus" class="status-pill status-idle">IDLE</span>
+                  </div>
+                  <div id="foundryTestConsole" class="foundry-test-console">[Ready to execute automated pytest suite in isolated project sandbox...]</div>
+                  <div id="foundryRepairInfoBox" style="background: var(--surface-card); border: 1px solid var(--border); border-radius: 4px; padding: 12px; font-size: 12px;">
+                    <div style="font-family: var(--font-mono); font-size: 11px; color: var(--accent); font-weight: 600; margin-bottom: 4px;">AUTONOMOUS SELF-HEALING STATUS</div>
+                    <div id="foundryRepairDetails" style="color: var(--text-secondary);">No repairs required. Clean execution or pending test run.</div>
+                  </div>
+                </div>
+
+                <!-- TAB 3: LAUNCH CERTIFICATION -->
+                <div id="foundryTabCert" style="display: none; flex-direction: column; gap: 14px;">
+                  <div class="cert-score-grid">
+                    <div class="cert-stat-badge">
+                      <span class="cert-stat-val" id="certScoreOverall">--</span>
+                      <span class="cert-stat-lbl">Overall Score</span>
+                    </div>
+                    <div class="cert-stat-badge">
+                      <span class="cert-stat-val" id="certScoreArch" style="color: #60A5FA;">--</span>
+                      <span class="cert-stat-lbl">Architecture</span>
+                    </div>
+                    <div class="cert-stat-badge">
+                      <span class="cert-stat-val" id="certScoreSec" style="color: #F87171;">--</span>
+                      <span class="cert-stat-lbl">Security SAST</span>
+                    </div>
+                    <div class="cert-stat-badge">
+                      <span class="cert-stat-val" id="certScoreTests" style="color: #34D399;">--</span>
+                      <span class="cert-stat-lbl">Test Pass Rate</span>
+                    </div>
+                  </div>
+                  <div style="background: var(--surface-card); border: 1px solid var(--border); border-radius: 4px; padding: 14px; display: flex; flex-direction: column; gap: 8px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                      <span style="font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; color: var(--text-secondary);">Team 9 Critic Verdict</span>
+                      <span id="certVerdictBadge" class="status-pill status-idle">PENDING</span>
+                    </div>
+                    <div id="certObservationsBox" style="font-family: var(--font-mono); font-size: 11px; color: var(--text); line-height: 1.6; white-space: pre-wrap; background: #0d0d0d; padding: 12px; border-radius: 4px; border: 1px solid var(--border-subtle);">
+                      Run a product build to generate official launch certification.
+                    </div>
+                  </div>
+                </div>
+
+                <!-- TAB 4: README -->
+                <div id="foundryTabReadme" style="display: none;">
+                  <div id="foundryReadmeViewer" class="foundry-code-viewer" style="max-height: 480px; white-space: pre-wrap; color: #E4E4E7;">
+                    # No README.md available yet.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
     </main>
   </div>
 
@@ -1735,6 +2095,8 @@
         loadProposals();
       } else if (activePage === "settings") {
         loadSettings();
+      } else if (activePage === "foundry") {
+        loadFoundryProjects();
       }
     }
 
@@ -1784,6 +2146,7 @@
       if (activePage === "workforce") loadAgents();
       if (activePage === "timeline") loadTimeline();
       if (activePage === "settings") loadSettings();
+      if (activePage === "foundry") handleFoundryWebSocketEvent(payload);
     }
 
     function appendActivityFeed(event) {
@@ -1794,7 +2157,18 @@
       let badgeClass = "status-idle";
       let desc = "";
 
-      if (event.event_type.includes("task_running") || event.event_type.includes("running")) {
+      if (event.event_type.startsWith("foundry_")) {
+        badgeClass = event.event_type.includes("failed") ? "status-failed" : (event.event_type.includes("completed") ? "status-completed" : "status-running");
+        if (event.event_type === "foundry_started") desc = `Foundry build started: ${event.data.project_name || event.data.project_slug}`;
+        else if (event.event_type === "foundry_phase") desc = `Foundry [${event.data.phase}]: ${event.data.message}`;
+        else if (event.event_type === "foundry_file_written") desc = `Foundry synthesized ${event.data.relative_path} (${event.data.lines} lines, ${event.data.assigned_agent})`;
+        else if (event.event_type === "foundry_test_result") desc = `Foundry test passed: ${event.data.test_file}`;
+        else if (event.event_type === "foundry_test_failed") desc = `Foundry test failure: ${event.data.test_file} (Attempt ${event.data.iteration})`;
+        else if (event.event_type === "foundry_repair_applied") desc = `Foundry self-healed: ${event.data.target_file} (Attempt ${event.data.iteration})`;
+        else if (event.event_type === "foundry_completed") desc = `Foundry certified: ${event.data.project_name} (Score: ${event.data.overall_score}%)`;
+        else if (event.event_type === "foundry_failed") desc = `Foundry build failed: ${event.data.error}`;
+        else desc = JSON.stringify(event.data);
+      } else if (event.event_type.includes("task_running") || event.event_type.includes("running")) {
         badgeClass = "status-running";
         desc = `Task started: ${event.data.title || event.data.task_id} (${event.data.agent_id})`;
       } else if (event.event_type.includes("task_completed")) {
@@ -1864,6 +2238,14 @@
         } else {
           apprBadge.style.display = "none";
         }
+
+        fetch(`${API_BASE}/foundry/projects`)
+          .then(r => r.ok ? r.json() : [])
+          .then(projs => {
+            const countEl = document.getElementById("navFoundryCount");
+            if (countEl) countEl.textContent = projs.length;
+          })
+          .catch(() => {});
 
         document.getElementById("ccLastSync").textContent = `Synced: ${new Date().toLocaleTimeString()}`;
       } catch (e) {
@@ -2545,6 +2927,343 @@
         loadStats();
       } catch (e) {
         alert(`Error proposing improvement: ${e.message}`);
+      }
+    }
+
+    // =========================================================================
+    // PRODUCT FOUNDRY CONTROLLER
+    // =========================================================================
+
+    let foundryProjects = [];
+    let selectedProjectSlug = null;
+    let selectedProjectData = null;
+    let activeFoundryTab = 'files';
+
+    function focusFoundryInput() {
+      const el = document.getElementById("foundryIntentInput");
+      if (el) {
+        el.focus();
+        el.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+
+    function setFoundryPreset(text) {
+      const el = document.getElementById("foundryIntentInput");
+      if (el) el.value = text;
+    }
+
+    function switchFoundryTab(tabName) {
+      activeFoundryTab = tabName;
+      ['files', 'tests', 'cert', 'readme'].forEach(t => {
+        const btn = document.getElementById(`tabFoundry${t.charAt(0).toUpperCase() + t.slice(1)}Btn`);
+        const view = document.getElementById(`foundryTab${t.charAt(0).toUpperCase() + t.slice(1)}`);
+        if (btn) {
+          if (t === tabName) {
+            btn.classList.add("btn-primary");
+          } else {
+            btn.classList.remove("btn-primary");
+          }
+        }
+        if (view) {
+          view.style.display = (t === tabName) ? (t === 'files' ? 'grid' : 'flex') : 'none';
+        }
+      });
+    }
+
+    async function loadFoundryProjects() {
+      try {
+        const res = await fetch(`${API_BASE}/foundry/projects`);
+        if (!res.ok) return;
+        foundryProjects = await res.json();
+
+        const countEl = document.getElementById("foundryProjectCount");
+        if (countEl) countEl.textContent = `${foundryProjects.length} project${foundryProjects.length !== 1 ? 's' : ''}`;
+        const navCount = document.getElementById("navFoundryCount");
+        if (navCount) navCount.textContent = foundryProjects.length;
+
+        const listEl = document.getElementById("foundryProjectsList");
+        if (!listEl) return;
+
+        if (foundryProjects.length === 0) {
+          listEl.innerHTML = `<div style="text-align: center; color: var(--text-muted); font-size: 11px; padding: 20px;">No projects synthesized yet. Launch a build above.</div>`;
+          return;
+        }
+
+        listEl.innerHTML = foundryProjects.map(p => `
+          <div class="project-card-item ${selectedProjectSlug === p.slug ? 'selected' : ''}" onclick="selectFoundryProject('${p.slug}')">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--text);">${p.project_name}</span>
+              <span class="status-pill ${p.has_tests ? 'status-completed' : 'status-idle'}" style="font-size: 9px;">${p.has_tests ? 'TESTED' : 'SOURCE'}</span>
+            </div>
+            <div style="font-family: var(--font-mono); font-size: 10px; color: var(--accent);">${p.slug}</div>
+            <div style="display: flex; gap: 8px; font-size: 10px; color: var(--text-secondary); margin-top: 2px;">
+              <span>${p.file_count} files</span>
+              <span>&bull;</span>
+              <span>${p.has_readme ? 'README ✓' : 'No docs'}</span>
+            </div>
+          </div>
+        `).join("");
+
+        // Auto-select first project if none selected
+        if (!selectedProjectSlug && foundryProjects.length > 0) {
+          selectFoundryProject(foundryProjects[0].slug);
+        }
+      } catch (e) {
+        console.error("Error loading foundry projects:", e);
+      }
+    }
+
+    async function selectFoundryProject(slug) {
+      selectedProjectSlug = slug;
+      // Update visual selection in list
+      document.querySelectorAll(".project-card-item").forEach(el => el.classList.remove("selected"));
+
+      try {
+        const res = await fetch(`${API_BASE}/foundry/projects/${slug}`);
+        if (!res.ok) return;
+        selectedProjectData = await res.json();
+
+        document.getElementById("foundrySelectedProjectTitle").textContent = selectedProjectData.project_name;
+        document.getElementById("foundrySelectedProjectPath").textContent = selectedProjectData.directory;
+        document.getElementById("btnRunFoundryTests").disabled = false;
+
+        // Render file list
+        const fileListEl = document.getElementById("foundryFileList");
+        if (fileListEl) {
+          fileListEl.innerHTML = selectedProjectData.files.map((f, idx) => `
+            <div class="foundry-preset-chip" style="display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; margin: 0;" onclick="loadFoundryFile('${slug}', '${f.relative_path}')">
+              <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${f.relative_path}</span>
+              <span style="color: var(--text-muted); font-size: 9px;">${f.line_count}L</span>
+            </div>
+          `).join("");
+        }
+
+        // Render README tab
+        const readmeEl = document.getElementById("foundryReadmeViewer");
+        if (readmeEl) {
+          readmeEl.textContent = selectedProjectData.readme || "# No README.md found in project.";
+        }
+
+        // Auto-load first source file
+        if (selectedProjectData.files.length > 0) {
+          loadFoundryFile(slug, selectedProjectData.files[0].relative_path);
+        }
+      } catch (e) {
+        console.error("Error selecting foundry project:", e);
+      }
+    }
+
+    async function loadFoundryFile(slug, relPath) {
+      try {
+        const res = await fetch(`${API_BASE}/foundry/projects/${slug}/file?file_path=${encodeURIComponent(relPath)}`);
+        if (!res.ok) return;
+        const fileData = await res.json();
+
+        document.getElementById("foundryActiveFileName").textContent = fileData.relative_path;
+        document.getElementById("foundryActiveFileStats").textContent = `${fileData.line_count} lines • ${fileData.size_bytes} bytes`;
+        document.getElementById("foundryCodeViewer").textContent = fileData.content;
+      } catch (e) {
+        console.error("Error reading file:", e);
+      }
+    }
+
+    function refreshSelectedFoundryProject() {
+      if (selectedProjectSlug) {
+        selectFoundryProject(selectedProjectSlug);
+      } else {
+        loadFoundryProjects();
+      }
+    }
+
+    async function runCurrentFoundryTests() {
+      if (!selectedProjectSlug) return;
+      switchFoundryTab('tests');
+
+      const statusPill = document.getElementById("foundryTestRunnerStatus");
+      const consoleEl = document.getElementById("foundryTestConsole");
+      const repairBox = document.getElementById("foundryRepairDetails");
+
+      statusPill.className = "status-pill status-running";
+      statusPill.textContent = "EXECUTING...";
+      consoleEl.textContent = `[Spawning sandboxed pytest runner in isolated directory: ${selectedProjectSlug}...]\n`;
+
+      try {
+        const res = await fetch(`${API_BASE}/foundry/projects/${selectedProjectSlug}/test`, { method: "POST" });
+        if (!res.ok) {
+          const err = await res.json();
+          statusPill.className = "status-pill status-failed";
+          statusPill.textContent = "FAILED";
+          consoleEl.textContent += `Error executing tests: ${err.detail || JSON.stringify(err)}`;
+          return;
+        }
+
+        const results = await res.json();
+        let allPassed = true;
+        let logOutput = "";
+
+        results.forEach(r => {
+          if (!r.passed) allPassed = false;
+          logOutput += `======================================================================\n`;
+          logOutput += `TEST SUITE: ${r.test_file} | Status: ${r.passed ? 'PASSED (0)' : 'FAILED (' + r.exit_code + ')'} | ${r.execution_time_ms} ms\n`;
+          logOutput += `======================================================================\n`;
+          if (r.stdout) logOutput += r.stdout + "\n";
+          if (r.stderr) logOutput += "STDERR:\n" + r.stderr + "\n";
+          if (r.failure_summary) logOutput += `FAILURE SUMMARY: ${r.failure_summary}\n`;
+          logOutput += "\n";
+        });
+
+        consoleEl.textContent = logOutput;
+        if (allPassed) {
+          statusPill.className = "status-pill status-completed";
+          statusPill.textContent = "PASSED";
+          repairBox.innerHTML = `<span style="color: #34D399;">✓ All assertions verified. 100% pass rate achieved in isolated sandbox.</span>`;
+        } else {
+          statusPill.className = "status-pill status-failed";
+          statusPill.textContent = "FAILED";
+          repairBox.innerHTML = `<span style="color: #F87171;">✗ Test assertions failed. Trigger an autonomous repair loop to self-heal code.</span>`;
+        }
+      } catch (e) {
+        statusPill.className = "status-pill status-failed";
+        statusPill.textContent = "ERROR";
+        consoleEl.textContent += `Network error: ${e.message}`;
+      }
+    }
+
+    async function launchFoundryBuild() {
+      const intent = document.getElementById("foundryIntentInput").value.trim();
+      const slug = document.getElementById("foundrySlugInput").value.trim() || undefined;
+      const name = document.getElementById("foundryNameInput").value.trim() || undefined;
+      const isAsync = document.getElementById("foundryAsyncCheck").checked;
+
+      if (!intent) {
+        alert("Please describe the product intent or click a quick preset.");
+        return;
+      }
+
+      const btn = document.getElementById("btnBuildFoundry");
+      const btnText = document.getElementById("btnBuildFoundryText");
+      btn.disabled = true;
+      btnText.textContent = "Building Product (Stage 1-5)...";
+
+      // Reset stage cards
+      ['spec', 'synth', 'sec', 'test', 'cert'].forEach(s => {
+        const card = document.getElementById(`stageCard-${s}`);
+        if (card) {
+          card.classList.remove('active', 'completed', 'failed');
+        }
+      });
+      const specCard = document.getElementById("stageCard-spec");
+      if (specCard) specCard.classList.add("active");
+
+      try {
+        const res = await fetch(`${API_BASE}/foundry/build`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            product_intent: intent,
+            slug: slug,
+            project_name: name,
+            run_in_background: isAsync
+          })
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          alert(`Build failed: ${err.detail || JSON.stringify(err)}`);
+          btn.disabled = false;
+          btnText.textContent = "[ INITIATE AUTONOMOUS BUILD ]";
+          return;
+        }
+
+        const data = await res.json();
+
+        if (isAsync) {
+          alert("Autonomous build initiated in background. You can monitor live progress across the 5 stage cards and activity stream.");
+        } else {
+          // Completed synchronously
+          ['spec', 'synth', 'sec', 'test', 'cert'].forEach(s => {
+            const card = document.getElementById(`stageCard-${s}`);
+            if (card) card.classList.add('completed');
+          });
+
+          // Populate Certification Tab
+          if (data.certification) {
+            document.getElementById("certScoreOverall").textContent = `${data.certification.overall_score}%`;
+            document.getElementById("certScoreArch").textContent = `${data.certification.architecture_score}%`;
+            document.getElementById("certScoreSec").textContent = `${data.certification.security_score}%`;
+            document.getElementById("certScoreTests").textContent = `${data.certification.test_pass_rate}%`;
+
+            const verdictBadge = document.getElementById("certVerdictBadge");
+            if (verdictBadge) {
+              verdictBadge.textContent = data.certification.verdict;
+              verdictBadge.className = data.certification.certified ? "status-pill status-completed" : "status-pill status-failed";
+            }
+
+            document.getElementById("certObservationsBox").textContent = data.certification.critic_observations;
+          }
+
+          // Refresh and select
+          await loadFoundryProjects();
+          if (data.project_slug) {
+            selectFoundryProject(data.project_slug);
+          }
+          alert(`Product '${data.project_name}' successfully built, tested, and certified!`);
+        }
+      } catch (e) {
+        alert(`Error executing foundry build: ${e.message}`);
+      } finally {
+        btn.disabled = false;
+        btnText.textContent = "[ INITIATE AUTONOMOUS BUILD ]";
+      }
+    }
+
+    function handleFoundryWebSocketEvent(payload) {
+      const type = payload.event_type;
+      const data = payload.data || {};
+
+      if (type === "foundry_started") {
+        document.getElementById("stageCard-spec").classList.add("active");
+      } else if (type === "foundry_phase") {
+        const phase = data.phase;
+        if (phase === "specification") {
+          document.getElementById("stageCard-spec").classList.add("active");
+        } else if (phase === "synthesis") {
+          document.getElementById("stageCard-spec").classList.replace("active", "completed");
+          document.getElementById("stageCard-synth").classList.add("active");
+        } else if (phase === "security_audit") {
+          document.getElementById("stageCard-synth").classList.replace("active", "completed");
+          document.getElementById("stageCard-sec").classList.add("active");
+        } else if (phase === "testing") {
+          document.getElementById("stageCard-sec").classList.replace("active", "completed");
+          document.getElementById("stageCard-test").classList.add("active");
+        } else if (phase === "certification") {
+          document.getElementById("stageCard-test").classList.replace("active", "completed");
+          document.getElementById("stageCard-cert").classList.add("active");
+        }
+      } else if (type === "foundry_test_result") {
+        const consoleEl = document.getElementById("foundryTestConsole");
+        if (consoleEl) {
+          consoleEl.textContent += `[Test Passed]: ${data.test_file} (Attempt ${data.iteration})\n`;
+        }
+      } else if (type === "foundry_test_failed") {
+        const consoleEl = document.getElementById("foundryTestConsole");
+        if (consoleEl) {
+          consoleEl.textContent += `[Test Failed]: ${data.test_file} (Attempt ${data.iteration}): ${data.failure_summary}\n`;
+        }
+      } else if (type === "foundry_repair_applied") {
+        const repairBox = document.getElementById("foundryRepairDetails");
+        if (repairBox) {
+          repairBox.innerHTML = `<span style="color: var(--accent);">Self-healing patch applied to ${data.target_file} on iteration ${data.iteration}. Re-testing...</span>`;
+        }
+      } else if (type === "foundry_completed") {
+        ['spec', 'synth', 'sec', 'test', 'cert'].forEach(s => {
+          const card = document.getElementById(`stageCard-${s}`);
+          if (card) card.classList.replace("active", "completed");
+        });
+        loadFoundryProjects();
+        if (data.project_slug) selectFoundryProject(data.project_slug);
+      } else if (type === "foundry_failed") {
+        document.querySelectorAll(".foundry-stage-card.active").forEach(c => c.classList.replace("active", "failed"));
       }
     }
 

@@ -6,7 +6,7 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688.svg)](https://fastapi.tiangolo.com)
 [![Ollama](https://img.shields.io/badge/Ollama-qwen3:4b-black.svg)](https://ollama.ai)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests Passing](https://img.shields.io/badge/Tests-128%20Passed-brightgreen.svg)]()
+[![Tests Passing](https://img.shields.io/badge/Tests-144%20Passed-brightgreen.svg)]()
 
 ---
 
@@ -68,6 +68,43 @@ Each agent possesses an immutable system persona, distinct role, granular capabi
 | **8** | **Security** | `sentinel-01..10` | Threat modeling (STRIDE), permissions audit, vulnerability review |
 | **9** | **Critic** | `argus-01..10` | Adversarial review, hallucination detection, acceptance audits |
 | **10** | **Optimization** | `apex-01..10` | Prompt improvement, workflow benchmarking, efficiency tuning |
+
+---
+
+## 🏭 Autonomous Product Foundry (Software Factory)
+
+SWARM-100 transforms natural-language product visions into fully realized, tested, and certified codebases inside `workspace/projects/<slug>`:
+
+```
+[ Natural Language Product Intent ]
+                 │
+                 ▼
+ 01. SPECIFICATION & ARCHITECTURE MANIFEST (forge-02 Architect)
+     Multi-file component graph, interfaces, schemas, and test expectations.
+                 │
+                 ▼
+ 02. MULTI-FILE CODE SYNTHESIS (Team 5 Development Engineers)
+     app.py, storage.py, test_app.py, requirements.txt, and README.md.
+                 │
+                 ▼
+ 03. SAST SECURITY & THREAT AUDIT (cipher-04 Security Auditor)
+     Scans for dynamic eval, command injection, and hardcoded credentials.
+                 │
+                 ▼
+ 04. SANDBOXED TESTING & AUTONOMOUS SELF-HEALING (forge-07 Debugger)
+     Executes isolated subprocess pytest assertions; repairs defects up to 3 cycles.
+                 │
+                 ▼
+ 05. PACKAGING & LAUNCH CERTIFICATION (argus-01 Critic Lead)
+     Weighted production scoring (Architecture, Quality, Security, Tests).
+```
+
+### Foundry API Endpoints
+- `POST /api/v1/foundry/build`: Synthesizes and tests a complete software product.
+- `GET /api/v1/foundry/projects`: Lists all synthesized workspace projects with file and test metrics.
+- `GET /api/v1/foundry/projects/{slug}`: Returns the complete file tree, source code, and certification.
+- `GET /api/v1/foundry/projects/{slug}/file`: Reads individual source files with path traversal security.
+- `POST /api/v1/foundry/projects/{slug}/test`: Runs the automated test suite in an isolated subprocess.
 
 ---
 
@@ -133,6 +170,7 @@ Once running, navigate to:
 7. **Critic Reviews**: Adversarial audit results by Team 9 Critic agents with dimension scores.
 8. **Improvement History**: Prompt evolution history, benchmark comparisons, and safety verification results.
 9. **Settings & Tool Registry**: Tool permissions and human-in-the-loop approval management.
+10. **Product Foundry**: Autonomous software factory with live 5-stage progress stepper, project selector, split-pane file explorer, code viewer, and real-time pytest execution terminal.
 
 ---
 
@@ -159,7 +197,7 @@ SWARM-100 includes a sandboxed tool registry with permission levels and audit lo
 SWARM-100 is backed by a full test suite with 100% test pass rates:
 
 ```bash
-# Run the complete test suite (128 passing tests)
+# Run the complete test suite (144 passing tests)
 python -m pytest tests/
 
 # Run the 17-point end-to-end system audit

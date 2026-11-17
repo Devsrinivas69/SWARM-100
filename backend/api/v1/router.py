@@ -11,6 +11,7 @@ from backend.api.v1.memory import router as memory_router
 from backend.api.v1.improvement import router as improvement_router
 from backend.api.v1.tools import router as tools_router
 from backend.api.v1.dashboard import router as dashboard_router
+from backend.api.v1.foundry import router as foundry_router
 
 router = APIRouter(prefix="/api/v1")
 router.include_router(agents_router)
@@ -21,6 +22,7 @@ router.include_router(memory_router)
 router.include_router(improvement_router)
 router.include_router(tools_router)
 router.include_router(dashboard_router)
+router.include_router(foundry_router)
 
 
 

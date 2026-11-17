@@ -22,6 +22,8 @@ def test_dashboard_html_served_at_root(client: TestClient):
     assert "SWARM-100" in res.text
     assert "Command Center" in res.text
     assert "Agent Workforce" in res.text
+    assert "Product Foundry" in res.text
+    assert "page-foundry" in res.text
     assert "#111111" in res.text  # Verification of background color spec
     assert "#F59E0B" in res.text  # Verification of accent color spec
 
