@@ -9,14 +9,17 @@ Integrates with the 3-tier persistent memory system and automated critic reviews
 
 import asyncio
 import logging
+import time
 import traceback
 from typing import Any, Dict, List, Optional
 
 from backend.agents.definitions import AGENTS
 from backend.agents.registry import get_agent_by_id, update_agent_score, update_agent_status
+from backend.config import settings
 from backend.core.critic import critic_service
-from backend.core.llm_service import llm_service
+from backend.core.llm_service import LLMResponse, LLMTelemetry, llm_service
 from backend.core.memory import memory_service
+from backend.core.react_loop import react_engine
 from backend.core.task_queue import TaskQueue
 from backend.core.websocket_manager import ws_manager
 from backend.database import get_connection
@@ -24,9 +27,45 @@ from backend.models.schemas import TaskStatus
 
 logger = logging.getLogger("swarm100.worker_pool")
 
+
+class TokenStreamBuffer:
+    """
+    Batches streaming generation tokens to emit smooth, rate-limited WebSocket frames
+    without overwhelming browser DOM or client networks.
+    """
+    def __init__(self, task_id: str, agent_id: str, goal_id: str, flush_interval: float = 0.08):
+        self.task_id = task_id
+        self.agent_id = agent_id
+        self.goal_id = goal_id
+        self.flush_interval = flush_interval
+        self._buffer: List[str] = []
+        self._last_flush = time.perf_counter()
+
+    async def add_token(self, token: str) -> None:
+        self._buffer.append(token)
+        now = time.perf_counter()
+        if (now - self._last_flush) >= self.flush_interval or len(self._buffer) >= 6:
+            await self.flush()
+
+    async def flush(self) -> None:
+        if not self._buffer:
+            return
+        text_chunk = "".join(self._buffer)
+        self._buffer = []
+        self._last_flush = time.perf_counter()
+        try:
+            ws_manager.emit_event("token_stream", {
+                "task_id": self.task_id,
+                "agent_id": self.agent_id,
+                "goal_id": self.goal_id,
+                "token": text_chunk
+            })
+        except Exception:
+            pass
+
 class WorkerPool:
-    def __init__(self, concurrency_limit: int = 1, task_queue: Optional[TaskQueue] = None):
-        self.concurrency_limit = max(1, concurrency_limit)
+    def __init__(self, concurrency_limit: Optional[int] = None, task_queue: Optional[TaskQueue] = None):
+        self.concurrency_limit = max(1, concurrency_limit if concurrency_limit is not None else settings.max_concurrency)
         self._semaphore: Optional[asyncio.Semaphore] = None
         self.queue = task_queue or TaskQueue()
         self.memory = memory_service
@@ -118,20 +157,52 @@ class WorkerPool:
 
                 sys_prompt = agent_profile["system_prompt"] if agent_profile else "You are an autonomous specialist agent."
 
-                # 5. Execute through dedicated LLM service
-                llm_response = await llm_service.chat(
-                    system_prompt=sys_prompt,
-                    user_message=task_user_message,
-                    upstream_context=upstream_text
-                )
+                # 5. Execute through autonomous ReAct loop or direct streaming chat
+                stream_buffer = TokenStreamBuffer(task_id=task_id, agent_id=agent_id, goal_id=goal_id)
+                on_token_cb = stream_buffer.add_token if settings.enable_token_streaming else None
 
-                output_content = llm_response.content
-                telemetry = llm_response.telemetry
+                if settings.enable_react_tools:
+                    output_content, tools_invoked, tele_summary = await react_engine.execute_react_task(
+                        agent_id=agent_id,
+                        system_prompt=sys_prompt,
+                        task_title=task["title"],
+                        task_directives=task["input"],
+                        upstream_context=upstream_text,
+                        task_id=task_id,
+                        goal_id=goal_id,
+                        on_token=on_token_cb
+                    )
+                    await stream_buffer.flush()
+                    telemetry = LLMTelemetry(
+                        total_tokens=tele_summary["total_tokens"],
+                        total_latency_ms=tele_summary["total_latency_ms"]
+                    )
+                else:
+                    llm_response = await llm_service.chat(
+                        system_prompt=sys_prompt,
+                        user_message=task_user_message,
+                        upstream_context=upstream_text,
+                        on_token=on_token_cb
+                    )
+                    await stream_buffer.flush()
+                    output_content = llm_response.content
+                    telemetry = llm_response.telemetry
 
                 if not output_content or not output_content.strip():
                     raise RuntimeError(f"Agent {agent_id} generated empty output for task {task_id}.")
 
-                # 6. Ask Critic Agent to Review Completed Task
+                # 6. Transition to Critic Review state & Audit Completed Deliverable
+                self.queue.update_task_status(task_id, TaskStatus.REVIEWING)
+                try:
+                    ws_manager.emit_event("task_reviewing", {
+                        "task_id": task_id,
+                        "agent_id": agent_id,
+                        "goal_id": goal_id,
+                        "title": task["title"]
+                    })
+                except Exception:
+                    pass
+
                 eval_result = await critic_service.evaluate_task_result(
                     task_id=task_id,
                     task_title=task["title"],
@@ -140,14 +211,93 @@ class WorkerPool:
                     agent_id=agent_id
                 )
 
+                # 6b. Critic Self-Correction Loop
+                max_critic_retries = min(task.get("max_retries", settings.max_critic_retries), settings.max_critic_retries)
+                current_retry = 0
+                initial_score = eval_result.score
+
+                while (not eval_result.passed or eval_result.score < 70.0) and current_retry < max_critic_retries:
+                    current_retry += 1
+                    logger.info(
+                        f"Task {task_id} scored {eval_result.score}/100 (< 70). "
+                        f"Initiating Critic Self-Correction attempt {current_retry}/{max_critic_retries}..."
+                    )
+
+                    try:
+                        ws_manager.emit_event("task_revising", {
+                            "task_id": task_id,
+                            "agent_id": agent_id,
+                            "goal_id": goal_id,
+                            "title": task["title"],
+                            "retry_count": current_retry,
+                            "max_retries": max_critic_retries,
+                            "score": eval_result.score,
+                            "critic_id": eval_result.critic_id,
+                            "deficiencies": {
+                                "factual_errors": eval_result.factual_errors,
+                                "missing_requirements": eval_result.missing_requirements,
+                                "weak_reasoning": eval_result.weak_reasoning,
+                            },
+                            "critic_feedback": eval_result.critic_feedback[:300]
+                        })
+                    except Exception:
+                        pass
+
+                    revision_directive = (
+                        f"[CRITIC AUDIT REVISION DIRECTIVE - ATTEMPT {current_retry}/{max_critic_retries}]\n"
+                        f"Your deliverable for '{task['title']}' was reviewed by Independent Critic {eval_result.critic_id} "
+                        f"and scored {eval_result.score}/100. VERDICT: NEEDS REVISION.\n\n"
+                        f"CRITIQUE & DEFICIENCIES DETECTED:\n"
+                        f"- Factual Errors: {', '.join(eval_result.factual_errors) if eval_result.factual_errors else 'None'}\n"
+                        f"- Missing Requirements: {', '.join(eval_result.missing_requirements) if eval_result.missing_requirements else 'None'}\n"
+                        f"- Weak Reasoning: {', '.join(eval_result.weak_reasoning) if eval_result.weak_reasoning else 'None'}\n\n"
+                        f"CRITIC FEEDBACK NOTES:\n{eval_result.critic_feedback}\n\n"
+                        f"PREVIOUS DRAFT:\n{output_content}\n\n"
+                        f"REVISION INSTRUCTIONS:\n"
+                        f"Directly fix every defect identified by the Critic above. "
+                        f"Supply missing sections, correct factual inaccuracies, tighten reasoning, and deliver the complete, corrected final Markdown artifact."
+                    )
+
+                    rev_stream_buffer = TokenStreamBuffer(task_id=task_id, agent_id=agent_id, goal_id=goal_id)
+                    revised_resp = await llm_service.chat(
+                        system_prompt=sys_prompt,
+                        user_message=revision_directive,
+                        upstream_context=upstream_text,
+                        on_token=rev_stream_buffer.add_token if settings.enable_token_streaming else None
+                    )
+                    await rev_stream_buffer.flush()
+
+                    if revised_resp.content and revised_resp.content.strip():
+                        output_content = revised_resp.content
+                        telemetry.total_tokens += revised_resp.telemetry.total_tokens
+                        telemetry.total_latency_ms += revised_resp.telemetry.total_latency_ms
+
+                    # Re-audit revised deliverable with Critic
+                    eval_result = await critic_service.evaluate_task_result(
+                        task_id=task_id,
+                        task_title=task["title"],
+                        task_input=task["input"],
+                        output_content=output_content,
+                        agent_id=agent_id
+                    )
+                    logger.info(
+                        f"Self-correction round {current_retry} evaluated: "
+                        f"Score {eval_result.score}/100 (Passed: {eval_result.passed})"
+                    )
+
                 # 7. Persistent Memory Recording (Three Layers)
                 # Layer 1: Agent Memory
                 if eval_result.passed:
+                    summary_text = (
+                        f"Successfully executed: {task['title']}"
+                        if current_retry == 0
+                        else f"Self-correction succeeded on {task['title']} (Score improved from {initial_score} to {eval_result.score}/100)"
+                    )
                     self.memory.save_agent_memory(
                         agent_id=agent_id,
                         memory_type="successful_approach",
-                        summary=f"Successfully executed: {task['title']}",
-                        content=f"Evaluator scored {eval_result.score}/100. Effective execution strategy established.",
+                        summary=summary_text,
+                        content=f"Evaluator scored {eval_result.score}/100. Effective execution strategy established after {current_retry} self-correction cycles.",
                         task_id=task_id,
                         goal_id=goal_id,
                         score=eval_result.score,
@@ -202,13 +352,19 @@ class WorkerPool:
                         confidence_score=eval_result.score
                     )
 
-                # 8. State transition: Running -> Completed
+                # 8. State transition: Reviewing -> Completed (with full Critic Audit telemetry)
+                import json
+                dim_json = json.dumps(eval_result.dimensions) if eval_result.dimensions else None
                 self.queue.update_task_status(
                     task_id,
                     TaskStatus.COMPLETED,
                     output=output_content,
                     tokens_used=telemetry.total_tokens,
-                    latency_ms=telemetry.total_latency_ms
+                    latency_ms=telemetry.total_latency_ms,
+                    review_score=eval_result.score,
+                    review_feedback=eval_result.critic_feedback,
+                    critic_id=eval_result.critic_id,
+                    dimensions=dim_json
                 )
 
                 try:
@@ -219,6 +375,8 @@ class WorkerPool:
                         "title": task["title"],
                         "score": eval_result.score,
                         "critic_id": eval_result.critic_id,
+                        "critic_feedback": eval_result.critic_feedback,
+                        "dimensions": eval_result.dimensions,
                         "tokens": telemetry.total_tokens,
                         "latency_ms": telemetry.total_latency_ms
                     })

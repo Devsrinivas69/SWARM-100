@@ -244,24 +244,38 @@ class ProductFoundry:
             )
 
             total_duration = round(time.time() - t0_start, 2)
-            final_status = "completed" if certification.certified else "needs_review"
 
-            # Finalize goal record in database
-            self.queue.complete_goal(
-                goal_id=goal_id,
-                final_output=json.dumps(certification.model_dump(), indent=2),
-                review_score=certification.overall_score,
-                review_feedback=certification.critic_observations
-            )
-
-            ws_manager.emit_event("foundry_completed", {
-                "goal_id": goal_id,
-                "project_name": name,
-                "project_slug": slug,
-                "certified": certification.certified,
-                "overall_score": certification.overall_score,
-                "duration_seconds": total_duration
-            })
+            if certification.certified:
+                final_status = "completed"
+                self.queue.complete_goal(
+                    goal_id=goal_id,
+                    final_output=json.dumps(certification.model_dump(), indent=2),
+                    review_score=certification.overall_score,
+                    review_feedback=certification.critic_observations
+                )
+                ws_manager.emit_event("foundry_completed", {
+                    "goal_id": goal_id,
+                    "project_name": name,
+                    "project_slug": slug,
+                    "certified": True,
+                    "overall_score": certification.overall_score,
+                    "duration_seconds": total_duration
+                })
+            else:
+                final_status = "failed"
+                fail_msg = (
+                    f"Foundry certification failed: {certification.verdict}. "
+                    f"Test pass rate: {certification.test_pass_rate}%, "
+                    f"Overall score: {certification.overall_score}/100."
+                )
+                self.queue.fail_goal(goal_id, fail_msg)
+                ws_manager.emit_event("foundry_failed", {
+                    "goal_id": goal_id,
+                    "project_slug": slug,
+                    "error": fail_msg,
+                    "test_pass_rate": certification.test_pass_rate,
+                    "overall_score": certification.overall_score
+                })
 
             return FoundryBuildResult(
                 goal_id=goal_id,

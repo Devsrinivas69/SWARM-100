@@ -46,6 +46,34 @@ class TaskQueue:
             conn.commit()
         return goal_id
 
+    def create_task(
+        self,
+        goal_id: str,
+        title: str,
+        assigned_agent_id: str,
+        input: str,
+        task_type: Optional[str] = None,
+        priority: int = 5,
+        dependencies: Optional[List[str]] = None
+    ) -> str:
+        """Creates an individual task in SQLite with 'pending' status."""
+        t_id = f"task-{uuid.uuid4().hex[:10]}"
+        deps = dependencies or []
+        with get_connection(self.db_path) as conn:
+            conn.execute(
+                """
+                INSERT INTO tasks (
+                    id, goal_id, assigned_agent_id, title, priority,
+                    dependencies, status, input, retry_count, max_retries,
+                    created_at, updated_at
+                )
+                VALUES (?, ?, ?, ?, ?, ?, 'pending', ?, 0, 3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                """,
+                (t_id, goal_id, assigned_agent_id, title, priority, json.dumps(deps), input)
+            )
+            conn.commit()
+        return t_id
+
     def populate_goal_plan(
         self,
         goal_id: str,
@@ -242,28 +270,48 @@ class TaskQueue:
         output: Optional[str] = None,
         error: Optional[str] = None,
         tokens_used: Optional[int] = None,
-        latency_ms: Optional[float] = None
+        latency_ms: Optional[float] = None,
+        review_score: Optional[float] = None,
+        review_feedback: Optional[str] = None,
+        critic_id: Optional[str] = None,
+        dimensions: Optional[str] = None
     ) -> bool:
-        """Atomically updates a task's status, output, telemetry, and timestamps."""
+        """Atomically updates a task's status, output, QA critic reviews, telemetry, and timestamps."""
         with get_connection(self.db_path) as conn:
             started_clause = ", started_at = CURRENT_TIMESTAMP" if status == TaskStatus.RUNNING else ""
             completed_clause = ", completed_at = CURRENT_TIMESTAMP" if status in (
-                TaskStatus.COMPLETED, TaskStatus.FAILED, TaskStatus.CANCELLED
+                TaskStatus.COMPLETED, TaskStatus.FAILED, TaskStatus.CANCELLED, TaskStatus.BLOCKED
             ) else ""
 
             tokens_clause = f", tokens_used = {int(tokens_used)}" if tokens_used is not None else ""
             latency_clause = f", latency_ms = {float(latency_ms)}" if latency_ms is not None else ""
+            score_clause = f", review_score = {float(review_score)}" if review_score is not None else ""
 
-            cursor = conn.execute(
-                f"""
+            extra_params = []
+            feedback_clause = ""
+            if review_feedback is not None:
+                feedback_clause = ", review_feedback = ?"
+                extra_params.append(review_feedback)
+
+            critic_clause = ""
+            if critic_id is not None:
+                critic_clause = ", critic_id = ?"
+                extra_params.append(critic_id)
+
+            dims_clause = ""
+            if dimensions is not None:
+                dims_clause = ", dimensions = ?"
+                extra_params.append(dimensions)
+
+            sql = f"""
                 UPDATE tasks
                 SET status = ?, output = COALESCE(?, output), error = COALESCE(?, error),
                     updated_at = CURRENT_TIMESTAMP {started_clause} {completed_clause}
-                    {tokens_clause} {latency_clause}
+                    {tokens_clause} {latency_clause} {score_clause} {feedback_clause} {critic_clause} {dims_clause}
                 WHERE id = ?
-                """,
-                (status.value, output, error, task_id)
-            )
+            """
+            params = [status.value, output, error] + extra_params + [task_id]
+            cursor = conn.execute(sql, tuple(params))
             conn.commit()
             return cursor.rowcount > 0
 
@@ -360,9 +408,110 @@ class TaskQueue:
             )
             conn.commit()
 
+    def propagate_task_failure(
+        self,
+        goal_id: str,
+        failed_task_id: str,
+        reason: Optional[str] = None
+    ) -> List[str]:
+        """
+        Traverses downstream dependencies in the DAG from a failed task
+        and transitions all dependent tasks from 'pending' or 'assigned'
+        to 'blocked' status in SQLite, recording the blocking upstream task.
+        Returns the list of blocked task IDs.
+        """
+        blocked_ids: List[str] = []
+        with get_connection(self.db_path) as conn:
+            rows = conn.execute(
+                "SELECT id, status, dependencies FROM tasks WHERE goal_id = ?",
+                (goal_id,)
+            ).fetchall()
+
+            tasks = [_parse_task_row(r) for r in rows]
+            invalid_parents = {failed_task_id}
+
+            # Iteratively find tasks whose dependencies intersect invalid_parents
+            changed = True
+            while changed:
+                changed = False
+                for t in tasks:
+                    t_id = t["id"]
+                    t_status = t.get("status")
+                    if t_status in (TaskStatus.PENDING.value, TaskStatus.ASSIGNED.value):
+                        deps = set(t.get("dependencies", []))
+                        if deps & invalid_parents:
+                            invalid_parents.add(t_id)
+                            blocked_ids.append(t_id)
+                            block_msg = reason or f"Blocked by failed prerequisite: {failed_task_id}"
+                            conn.execute(
+                                """
+                                UPDATE tasks
+                                SET status = 'blocked',
+                                    error = ?,
+                                    completed_at = CURRENT_TIMESTAMP,
+                                    updated_at = CURRENT_TIMESTAMP
+                                WHERE id = ?
+                                """,
+                                (block_msg, t_id)
+                            )
+                            t["status"] = TaskStatus.BLOCKED.value
+                            changed = True
+
+            conn.commit()
+
+        # Emit websocket events for blocked tasks
+        if blocked_ids:
+            try:
+                from backend.core.websocket_manager import ws_manager
+                for b_id in blocked_ids:
+                    ws_manager.emit_event("task_blocked", {
+                        "task_id": b_id,
+                        "goal_id": goal_id,
+                        "reason": reason or f"Prerequisite {failed_task_id} failed"
+                    })
+            except Exception:
+                pass
+
+        return blocked_ids
+
+    def reconcile_orphaned_tasks(self) -> int:
+        """
+        Cleans up orphaned 'running' or 'assigned' tasks from previous process crashes
+        or server restarts, resetting them to 'pending' so they can be re-executed,
+        or marking them with an error if their goal was terminated.
+        """
+        reconciled = 0
+        with get_connection(self.db_path) as conn:
+            cur = conn.execute(
+                """
+                UPDATE tasks
+                SET status = 'pending',
+                    started_at = NULL,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE status IN ('running', 'assigned')
+                  AND goal_id IN (SELECT id FROM goals WHERE status IN ('in_progress', 'pending'))
+                """
+            )
+            reconciled += cur.rowcount
+
+            cur2 = conn.execute(
+                """
+                UPDATE tasks
+                SET status = 'cancelled',
+                    completed_at = CURRENT_TIMESTAMP,
+                    updated_at = CURRENT_TIMESTAMP,
+                    error = 'Orphaned task cancelled due to inactive goal state'
+                WHERE status IN ('running', 'assigned')
+                  AND goal_id IN (SELECT id FROM goals WHERE status NOT IN ('in_progress', 'pending'))
+                """
+            )
+            reconciled += cur2.rowcount
+            conn.commit()
+        return reconciled
+
     def check_goal_progress(self, goal_id: str) -> Tuple[bool, bool, int, int]:
         """
-        Returns: (all_completed, any_failed, completed_count, total_count)
+        Returns: (all_completed, any_failed_or_blocked, completed_count, total_count)
         """
         with get_connection(self.db_path) as conn:
             rows = conn.execute("SELECT status FROM tasks WHERE goal_id = ?", (goal_id,)).fetchall()
@@ -371,7 +520,10 @@ class TaskQueue:
 
             total = len(rows)
             completed = sum(1 for r in rows if r["status"] == TaskStatus.COMPLETED.value)
-            failed = any(r["status"] == TaskStatus.FAILED.value for r in rows)
+            failed_or_blocked = any(
+                r["status"] in (TaskStatus.FAILED.value, TaskStatus.BLOCKED.value, TaskStatus.CANCELLED.value)
+                for r in rows
+            )
             all_done = (completed == total)
 
-            return (all_done, failed, completed, total)
+            return (all_done, failed_or_blocked, completed, total)

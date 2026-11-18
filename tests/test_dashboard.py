@@ -54,12 +54,29 @@ def test_dashboard_activity_feed(client: TestClient):
     data = res.json()
     assert isinstance(data, list)
 
-def test_dashboard_critic_reviews(client: TestClient):
-    """Verifies critic reviews endpoint returns evaluation records."""
+def test_dashboard_critic_reviews(client: TestClient, db_conn):
+    """Verifies critic reviews endpoint returns evaluation records with complete deliverable outcomes."""
+    with db_conn:
+        db_conn.execute(
+            "INSERT INTO goals (id, title, description, status) VALUES ('g-critic-test', 'Critic Goal Test', 'Testing', 'in_progress')"
+        )
+        db_conn.execute(
+            """
+            INSERT INTO tasks (id, goal_id, assigned_agent_id, title, priority, status, input, output, review_score, review_feedback, critic_id, dimensions)
+            VALUES ('t-critic-test', 'g-critic-test', 'venture-02', 'Market Sizing Test', 8, 'completed', 'Input directive', 'Generated market deliverable output text', 87.5, 'Sound reasoning and verified facts.', 'argus-06', '{"accuracy": 90, "logic": 85}')
+            """
+        )
     res = client.get("/api/v1/dashboard/critic-reviews")
     assert res.status_code == 200
     data = res.json()
     assert isinstance(data, list)
+    matching = [r for r in data if r.get("task_id") == "t-critic-test"]
+    assert len(matching) == 1
+    review = matching[0]
+    assert review["review_score"] == 87.5
+    assert "Generated market deliverable" in review["deliverable_output"]
+    assert review["critic_id"] == "argus-06"
+    assert review["dimensions"]["accuracy"] == 90
 
 def test_tasks_list_endpoint_for_kanban_board(client: TestClient):
     """Verifies that /api/v1/tasks returns tasks with dependencies and statuses for the board."""

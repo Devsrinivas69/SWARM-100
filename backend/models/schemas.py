@@ -132,12 +132,22 @@ class TaskOut(BaseModel):
     started_at: Optional[str | datetime] = None
     completed_at: Optional[str | datetime] = None
     updated_at: Optional[str | datetime] = None
+    tokens_used: int = 0
+    latency_ms: float = 0.0
+    review_score: Optional[float] = None
+    review_feedback: Optional[str] = None
+    critic_id: Optional[str] = None
+    dimensions: Optional[str] = None
     model_config = ConfigDict(from_attributes=True)
 
 class GoalCreate(BaseModel):
     title: str = Field(..., min_length=3, max_length=500)
     description: str = Field(..., min_length=5, max_length=10000)
     concurrency_limit: int = Field(1, ge=1, le=20, description="Concurrency limit for execution pool (default 1)")
+    workforce_density: Optional[str] = Field(
+        "adaptive",
+        description="Workforce density mode: 'adaptive', 'focused' (3-5), 'balanced' (10-15), 'comprehensive' (20-30), or 'full_swarm' (up to 100 agents across all 10 teams)"
+    )
 
 class GoalSummary(BaseModel):
     id: str

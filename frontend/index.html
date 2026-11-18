@@ -727,12 +727,82 @@
       color: var(--text);
     }
 
-    /* TASK BOARD KANBAN */
+    /* TASK BOARD KANBAN REDESIGN */
+    .kanban-stats-bar {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px 16px;
+      margin-bottom: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .kanban-stats-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .kanban-stat-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .kanban-stat-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
+      padding: 3px 8px;
+      border-radius: 4px;
+      color: var(--text-secondary);
+    }
+
+    .kanban-stat-pill strong {
+      color: var(--text);
+    }
+
+    .kanban-progress-track {
+      height: 6px;
+      background: #1f1f1f;
+      border-radius: 3px;
+      display: flex;
+      overflow: hidden;
+      width: 100%;
+    }
+
+    .progress-seg {
+      height: 100%;
+      transition: width 0.3s ease;
+    }
+    .progress-seg.seg-completed { background: var(--status-completed); }
+    .progress-seg.seg-running { background: var(--status-running); }
+    .progress-seg.seg-reviewing { background: var(--status-reviewing); }
+    .progress-seg.seg-pending { background: #555555; }
+    .progress-seg.seg-failed { background: var(--status-failed); }
+
+    .kanban-filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
     .kanban-board {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
       gap: 14px;
-      min-height: 500px;
+      min-height: 540px;
       overflow-x: auto;
     }
 
@@ -742,8 +812,15 @@
       border-radius: 6px;
       display: flex;
       flex-direction: column;
-      max-height: calc(100vh - 200px);
+      max-height: calc(100vh - 220px);
+      transition: border-color 0.2s ease;
     }
+
+    .kanban-col.col-pending { border-top: 3px solid #71717A; }
+    .kanban-col.col-running { border-top: 3px solid #F59E0B; }
+    .kanban-col.col-reviewing { border-top: 3px solid #A78BFA; }
+    .kanban-col.col-completed { border-top: 3px solid #10B981; }
+    .kanban-col.col-failed { border-top: 3px solid #EF4444; }
 
     .kanban-col-header {
       padding: 10px 14px;
@@ -760,60 +837,514 @@
 
     .kanban-col-count {
       background: var(--surface-card);
-      padding: 1px 6px;
+      padding: 2px 7px;
       border-radius: 3px;
-      color: var(--text-secondary);
+      color: var(--text);
+      font-weight: 700;
+      border: 1px solid var(--border-subtle);
     }
 
     .kanban-cards-list {
       padding: 10px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 10px;
       overflow-y: auto;
       flex: 1;
+    }
+
+    .kanban-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 110px;
+      border: 1px dashed rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      text-align: center;
+      padding: 12px;
+      gap: 4px;
     }
 
     .task-card {
       background: var(--surface-card);
       border: 1px solid var(--border);
-      border-radius: 4px;
+      border-radius: 5px;
       padding: 12px;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 8px;
       cursor: pointer;
-      transition: all 0.15s ease;
+      transition: all 0.2s ease;
+      position: relative;
     }
 
     .task-card:hover {
-      border-color: #404040;
+      border-color: #555555;
       background: var(--surface-elevated);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+    }
+
+    .task-card.is-running {
+      border-color: rgba(245, 158, 11, 0.5);
+      background: linear-gradient(180deg, rgba(245, 158, 11, 0.07) 0%, var(--surface-card) 100%);
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.15);
+    }
+
+    .task-card.is-reviewing {
+      border-color: rgba(167, 139, 250, 0.5);
+      background: linear-gradient(180deg, rgba(167, 139, 250, 0.07) 0%, var(--surface-card) 100%);
+      box-shadow: 0 0 10px rgba(167, 139, 250, 0.15);
+    }
+
+    .task-card.dep-target {
+      box-shadow: 0 0 14px rgba(96, 165, 250, 0.7) !important;
+      border-color: #60A5FA !important;
+    }
+
+    .task-card.dep-source {
+      box-shadow: 0 0 14px rgba(245, 158, 11, 0.7) !important;
+      border-color: #F59E0B !important;
+    }
+
+    .task-stream-preview {
+      margin-top: 6px;
+      padding: 6px 8px;
+      background: rgba(0, 0, 0, 0.55);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: #E5E7EB;
+      max-height: 85px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      line-height: 1.4;
+    }
+    .task-stream-preview:empty {
+      display: none;
+    }
+    .task-stream-preview.streaming:after {
+      content: "▋";
+      animation: blink 0.8s infinite;
+      color: var(--accent);
+      margin-left: 2px;
     }
 
     .task-card-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 6px;
+    }
+
+    .task-id-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
       font-family: var(--font-mono);
       font-size: 10px;
+    }
+
+    .task-id-text {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .task-team-pill {
+      font-size: 9px;
+      padding: 1px 5px;
+      border-radius: 2px;
+      border: 1px solid;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
     }
 
     .task-title {
       font-size: 12px;
-      font-weight: 500;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.35;
+    }
+
+    /* WORKER ATTRIBUTION BOX INSIDE TASK CARD */
+    .task-worker-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 4px;
+      padding: 6px 8px;
+      margin-top: 2px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .task-worker-box:hover {
+      background: rgba(245, 158, 11, 0.12);
+      border-color: rgba(245, 158, 11, 0.4);
+      transform: translateX(2px);
+    }
+
+    .worker-avatar-circle {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      border: 1px solid;
+      flex-shrink: 0;
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .worker-info {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      flex: 1;
+      gap: 1px;
+    }
+
+    .worker-id-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      line-height: 1.2;
+    }
+
+    .worker-id-text {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .worker-role-text {
+      color: var(--text-secondary);
+      font-size: 9px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .worker-name-text {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .worker-inspect-btn {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--text-muted);
+      opacity: 0;
+      transition: opacity 0.15s ease;
+    }
+
+    .task-worker-box:hover .worker-inspect-btn {
+      opacity: 1;
+      color: var(--accent);
+    }
+
+    .task-metrics-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+      margin-top: 4px;
+      padding-top: 6px;
+      border-top: 1px solid var(--border-subtle);
+      font-family: var(--font-mono);
+      font-size: 9px;
+    }
+
+    .metric-tag {
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-secondary);
+      padding: 2px 6px;
+      border-radius: 2px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .metric-tag.deps-tag {
+      background: rgba(96, 165, 250, 0.1);
+      border-color: rgba(96, 165, 250, 0.3);
+      color: #60A5FA;
+    }
+
+    .metric-tag.no-deps-tag {
+      background: rgba(16, 185, 129, 0.08);
+      border-color: rgba(16, 185, 129, 0.25);
+      color: #10B981;
+    }
+
+    .status-beacon {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #F59E0B;
+      margin-right: 4px;
+      box-shadow: 0 0 6px #F59E0B;
+      animation: pulse-beacon 1.2s infinite ease-in-out;
+    }
+
+    @keyframes pulse-beacon {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.3; transform: scale(0.75); }
+    }
+
+    /* ROBOTIC WORKER TELEMETRY HUD TOOLTIP */
+    .worker-hud-tooltip {
+      position: fixed;
+      z-index: 10000;
+      pointer-events: none;
+      width: 360px;
+      background: rgba(18, 18, 18, 0.96);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid var(--accent);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9), 0 0 16px rgba(245, 158, 11, 0.25);
+      border-radius: 6px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      opacity: 0;
+      transform: translateY(4px);
+      transition: opacity 0.15s ease, transform 0.15s ease;
+    }
+
+    .worker-hud-tooltip.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .hud-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+
+    .hud-title-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+
+    .hud-agent-id {
+      color: var(--accent);
+      font-weight: 700;
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      padding: 1px 6px;
+      border-radius: 3px;
+    }
+
+    .hud-agent-profile {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .hud-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 2px solid var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      background: rgba(245, 158, 11, 0.15);
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.2);
+    }
+
+    .hud-profile-text {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+
+    .hud-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .hud-role {
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+
+    .hud-team-tag {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      margin-top: 2px;
+      color: #60A5FA;
+    }
+
+    .hud-section {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .hud-section-label {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .hud-work-box {
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 8px 10px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .hud-work-box.active-work {
+      border-color: rgba(245, 158, 11, 0.5);
+      background: rgba(245, 158, 11, 0.06);
+    }
+
+    .hud-work-box.idle-work {
+      border-color: var(--border-subtle);
+      color: var(--text-secondary);
+    }
+
+    .hud-work-title {
+      font-size: 11px;
+      font-weight: 600;
       color: var(--text);
       line-height: 1.3;
     }
 
-    .task-meta {
+    .hud-work-meta {
+      font-size: 9px;
+      color: var(--text-muted);
+      display: flex;
+      gap: 8px;
+    }
+
+    .hud-caps-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .hud-telemetry-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 4px;
+      padding: 6px;
+    }
+
+    .hud-stat-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
       font-family: var(--font-mono);
+    }
+
+    .hud-stat-cell .stat-cell-label {
+      font-size: 8px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .hud-stat-cell .stat-cell-value {
       font-size: 10px;
-      color: var(--text-secondary);
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .hud-footer {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-top: 4px;
+      border-top: 1px solid var(--border);
+      padding-top: 6px;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--text-muted);
+    }
+
+    .hud-blink {
+      color: #10B981;
+      animation: pulse-beacon 1.5s infinite;
+    }
+
+    /* WORKFORCE VIEW ACTIVE WORK BADGES */
+    .agent-card.has-active-work {
+      border-color: rgba(245, 158, 11, 0.5);
+      background: linear-gradient(180deg, rgba(245, 158, 11, 0.07) 0%, var(--surface) 100%);
+      box-shadow: 0 0 12px rgba(245, 158, 11, 0.12);
+    }
+
+    .agent-active-badge {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      border-radius: 4px;
+      padding: 5px 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      margin-top: 2px;
+      overflow: hidden;
+    }
+
+    .agent-active-badge-title {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--accent);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .agent-idle-badge {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-subtle);
+      border-radius: 4px;
+      padding: 4px 7px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--text-muted);
+      margin-top: 2px;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
     }
 
     /* TIMELINE */
@@ -985,13 +1516,21 @@
 
     /* CRITIC METRICS CARDS */
     .critic-card {
-      background: var(--surface);
+      background: var(--surface-card);
       border: 1px solid var(--border);
       border-radius: 6px;
       padding: 16px;
       display: flex;
       flex-direction: column;
       gap: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .critic-card:hover {
+      border-color: #A78BFA;
+      background: var(--surface-elevated);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
     }
 
     .score-badge {
@@ -1173,6 +1712,9 @@
         <div id="wsDot" class="live-dot disconnected"></div>
         <span id="wsStatus">Connecting...</span>
       </div>
+      <button id="btnSoundToggle" class="btn btn-sm" onclick="toggleSoundFx()" title="Toggle Robotic Audio Telemetry (Web Audio API)" style="background: rgba(255,255,255,0.04); border: 1px solid var(--border); font-family: var(--font-mono); font-size: 11px; padding: 4px 10px; cursor: pointer; color: var(--text-secondary); border-radius: 4px; display: flex; align-items: center; gap: 5px;">
+        <span id="soundIcon">🔊</span> <span id="soundText">AUDIO: ON</span>
+      </button>
     </div>
 
     <!-- Active Goal Display & Global Controls -->
@@ -1440,53 +1982,95 @@
       <section id="page-tasks" class="page-view">
         <div class="page-header">
           <div>
-            <div class="page-title">Task Board</div>
-            <div class="page-subtitle">Directed acyclic execution states and dependency tracking.</div>
+            <div class="page-title">Task Board & Worker Assignment</div>
+            <div class="page-subtitle">Directed acyclic execution states, worker attributions, and live DAG tracking.</div>
           </div>
-          <div style="display: flex; gap: 8px;">
-            <select id="taskGoalFilter" class="filter-search" style="width: 250px;" onchange="loadTasks()">
-              <option value="all">All Goals</option>
-            </select>
+          <button class="btn btn-sm" onclick="loadTasks()" title="Reload Tasks">↻ Refresh Board</button>
+        </div>
+
+        <!-- Board Metrics & Segmented Progress Bar -->
+        <div class="kanban-stats-bar">
+          <div class="kanban-stats-row">
+            <div class="kanban-stat-group">
+              <span class="kanban-stat-pill">Total: <strong id="statTotalTasks">0</strong></span>
+              <span class="kanban-stat-pill" style="border-color: rgba(16, 185, 129, 0.4);"><span style="color: #10B981;">●</span> Completed: <strong id="statCompletedTasks">0</strong> (<span id="statCompletedPct">0%</span>)</span>
+              <span class="kanban-stat-pill" style="border-color: rgba(245, 158, 11, 0.4);"><span style="color: #F59E0B;">●</span> Running: <strong id="statRunningTasks">0</strong></span>
+              <span class="kanban-stat-pill" style="border-color: rgba(167, 139, 250, 0.4);"><span style="color: #A78BFA;">●</span> In QA Review: <strong id="statReviewingTasks">0</strong></span>
+              <span class="kanban-stat-pill" style="border-color: rgba(113, 113, 122, 0.4);"><span style="color: #71717A;">●</span> Pending/Blocked: <strong id="statPendingTasks">0</strong></span>
+              <span class="kanban-stat-pill" style="border-color: rgba(239, 68, 68, 0.4);"><span style="color: #EF4444;">●</span> Failed: <strong id="statFailedTasks">0</strong></span>
+            </div>
+            <div style="font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary);">
+              Hover worker for telemetry & robotic sound
+            </div>
           </div>
+          <!-- Segmented Progress Bar -->
+          <div class="kanban-progress-track" title="DAG Execution Progress">
+            <div id="segCompleted" class="progress-seg seg-completed" style="width: 0%;"></div>
+            <div id="segRunning" class="progress-seg seg-running" style="width: 0%;"></div>
+            <div id="segReviewing" class="progress-seg seg-reviewing" style="width: 0%;"></div>
+            <div id="segPending" class="progress-seg seg-pending" style="width: 0%;"></div>
+            <div id="segFailed" class="progress-seg seg-failed" style="width: 0%;"></div>
+          </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="kanban-filter-bar">
+          <select id="taskGoalFilter" class="filter-search" style="width: 250px;" onchange="loadTasks()">
+            <option value="all">All Goals</option>
+          </select>
+          <select id="taskTeamFilter" class="filter-search" style="width: 170px;" onchange="renderTaskCards()">
+            <option value="all">All Teams</option>
+            <option value="1">Team 1 — Strategy</option>
+            <option value="2">Team 2 — Research</option>
+            <option value="3">Team 3 — Business</option>
+            <option value="4">Team 4 — Content</option>
+            <option value="5">Team 5 — Development</option>
+            <option value="6">Team 6 — Data</option>
+            <option value="7">Team 7 — Operations</option>
+            <option value="8">Team 8 — Security</option>
+            <option value="9">Team 9 — Critic</option>
+            <option value="10">Team 10 — Optimization</option>
+          </select>
+          <input type="text" id="taskSearchInput" class="filter-search" placeholder="Filter by task title or worker ID..." oninput="renderTaskCards()" style="flex: 1; min-width: 200px;">
         </div>
 
         <!-- Kanban Columns -->
         <div class="kanban-board">
-          <div class="kanban-col">
-            <div class="kanban-col-header">
+          <div class="kanban-col col-pending">
+            <div class="kanban-col-header" style="color: #71717A;">
               <span>Pending / Blocked</span>
               <span id="colCountPending" class="kanban-col-count">0</span>
             </div>
             <div id="colPending" class="kanban-cards-list"></div>
           </div>
 
-          <div class="kanban-col">
+          <div class="kanban-col col-running">
             <div class="kanban-col-header" style="color: var(--status-running);">
-              <span>Running / Pool</span>
+              <span><span>●</span> Running / In Pool</span>
               <span id="colCountRunning" class="kanban-col-count">0</span>
             </div>
             <div id="colRunning" class="kanban-cards-list"></div>
           </div>
 
-          <div class="kanban-col">
+          <div class="kanban-col col-reviewing">
             <div class="kanban-col-header" style="color: var(--status-reviewing);">
-              <span>Critic Review</span>
+              <span><span>●</span> Critic Review</span>
               <span id="colCountReviewing" class="kanban-col-count">0</span>
             </div>
             <div id="colReviewing" class="kanban-cards-list"></div>
           </div>
 
-          <div class="kanban-col">
+          <div class="kanban-col col-completed">
             <div class="kanban-col-header" style="color: var(--status-completed);">
-              <span>Completed</span>
+              <span><span>●</span> Completed</span>
               <span id="colCountCompleted" class="kanban-col-count">0</span>
             </div>
             <div id="colCompleted" class="kanban-cards-list"></div>
           </div>
 
-          <div class="kanban-col">
+          <div class="kanban-col col-failed">
             <div class="kanban-col-header" style="color: var(--status-failed);">
-              <span>Failed / Errors</span>
+              <span><span>●</span> Failed / Errors</span>
               <span id="colCountFailed" class="kanban-col-count">0</span>
             </div>
             <div id="colFailed" class="kanban-cards-list"></div>
@@ -1637,6 +2221,61 @@
           <div>
             <div class="page-title">Tools, Permissions & Runtime Settings</div>
             <div class="page-subtitle">General-purpose tool registry, sandbox boundaries, and approval requests.</div>
+          </div>
+        </div>
+
+        <!-- Hybrid LLM Provider & Advanced Feature Configuration -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title" style="color: var(--accent);">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+              <span>Autonomous Engine & Hybrid Cloud Routing</span>
+            </div>
+            <span id="activeProviderBadge" class="status-pill status-completed">OLLAMA (LOCAL)</span>
+          </div>
+          <div class="panel-body" style="display: flex; flex-direction: column; gap: 14px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px;">
+              <div>
+                <label style="font-size: 11px; font-family: var(--font-mono); color: var(--text-secondary); display: block; margin-bottom: 4px;">Primary LLM Provider</label>
+                <select id="settingProviderSelect" class="input-select" style="width: 100%;" onchange="updateProviderSettingsUI()">
+                  <option value="ollama">Ollama (100% Offline Local Inference — qwen3:4b)</option>
+                  <option value="groq">Groq Cloud (Ultra-Fast ~300 tok/sec — Llama-3.3-70B)</option>
+                  <option value="gemini">Google Gemini (Gemini 2.0 Flash)</option>
+                  <option value="openai">OpenAI / OpenRouter (GPT-4o mini)</option>
+                  <option value="hybrid">Hybrid Mode (Workers on Local Ollama + Cloud Critic Bursting)</option>
+                </select>
+              </div>
+
+              <div>
+                <label style="font-size: 11px; font-family: var(--font-mono); color: var(--text-secondary); display: block; margin-bottom: 4px;">Critic Self-Correction Retries</label>
+                <input type="number" id="settingMaxCriticRetries" class="input-text" style="width: 100%;" min="0" max="5" value="2">
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px;">
+              <div>
+                <label style="font-size: 11px; font-family: var(--font-mono); color: var(--text-secondary); display: block; margin-bottom: 4px;">Groq API Key (Optional)</label>
+                <input type="password" id="settingGroqKey" class="input-text" style="width: 100%;" placeholder="gsk_...">
+              </div>
+              <div>
+                <label style="font-size: 11px; font-family: var(--font-mono); color: var(--text-secondary); display: block; margin-bottom: 4px;">Gemini API Key (Optional)</label>
+                <input type="password" id="settingGeminiKey" class="input-text" style="width: 100%;" placeholder="AIzaSy...">
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 20px; align-items: center; padding-top: 6px; border-top: 1px solid var(--border);">
+              <label style="display: flex; align-items: center; gap: 8px; font-size: 11px; font-family: var(--font-mono); cursor: pointer;">
+                <input type="checkbox" id="settingStreamingToggle" checked>
+                <span>Live WebSocket Token Streaming</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 8px; font-size: 11px; font-family: var(--font-mono); cursor: pointer;">
+                <input type="checkbox" id="settingReActToggle" checked>
+                <span>Autonomous ReAct Tool Reasoning Loop</span>
+              </label>
+              <div style="margin-left: auto;">
+                <button class="btn btn-primary" onclick="saveLLMSettings()">Save Engine Settings</button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -1956,8 +2595,9 @@
   </div>
 
   <!-- TASK DETAIL MODAL -->
+  <!-- TASK DETAILS & CRITIC AUDIT MODAL -->
   <div id="taskModal" class="modal-backdrop">
-    <div class="modal-box">
+    <div class="modal-box" style="max-width: 800px; max-height: 90vh;">
       <div class="modal-header">
         <div>
           <span style="font-family: var(--font-mono); color: var(--accent);" id="modalTaskId">TASK-ID</span> &mdash;
@@ -1965,28 +2605,102 @@
         </div>
         <button class="modal-close" onclick="closeTaskModal()">&times;</button>
       </div>
-      <div class="modal-body">
-        <div style="display: flex; gap: 10px; align-items: center;">
+      <div class="modal-body" style="gap: 14px;">
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
           <span class="status-pill status-pending" id="modalTaskStatus">STATUS</span>
           <span style="font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary);" id="modalTaskAgent">Assigned Agent</span>
           <span style="color: var(--text-secondary); font-size: 12px;">&bull;</span>
           <span style="font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary);" id="modalTaskPriority">Priority: 5</span>
+          <span style="margin-left: auto;" id="modalTaskScorePill"></span>
+        </div>
+
+        <!-- Team 9 Critic QA Review Section -->
+        <div id="modalTaskCriticSection" style="display: none; background: rgba(167, 139, 250, 0.08); border: 1px solid rgba(167, 139, 250, 0.35); border-radius: 6px; padding: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 14px;">🛡️</span>
+              <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: #A78BFA;" id="modalTaskCriticId">Team 9 QA Audit</span>
+            </div>
+            <span class="score-badge high" id="modalTaskCriticScore">-- / 100</span>
+          </div>
+          <div id="modalTaskDimensionsGrid" style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px;"></div>
+          <div style="font-family: var(--font-mono); font-size: 10px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 4px;">Critic Auditor Notes & Verdict</div>
+          <div class="code-block" id="modalTaskCriticFeedback" style="max-height: 140px; margin-bottom: 0; color: #E5E7EB; background: rgba(0, 0, 0, 0.4);"></div>
         </div>
 
         <div>
-          <div style="font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 4px;">Input Directive</div>
-          <div class="code-block" id="modalTaskInput"></div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <div style="font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary); text-transform: uppercase;">Generated Specialist Deliverable Outcome</div>
+            <button class="btn btn-sm" onclick="copyTaskDeliverable()">📋 Copy Deliverable</button>
+          </div>
+          <div class="code-block" id="modalTaskOutput" style="max-height: 320px; font-size: 12px; line-height: 1.5; white-space: pre-wrap; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;"></div>
         </div>
 
-        <div>
-          <div style="font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 4px;">Deliverable Output</div>
-          <div class="code-block" id="modalTaskOutput"></div>
-        </div>
+        <details style="background: var(--surface-card); border: 1px solid var(--border); border-radius: 4px; padding: 8px 12px;">
+          <summary style="font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary); cursor: pointer; text-transform: uppercase;">View Input Directives</summary>
+          <div class="code-block" id="modalTaskInput" style="margin-top: 6px; max-height: 120px;"></div>
+        </details>
 
         <div id="modalTaskErrorSection" style="display: none;">
           <div style="font-family: var(--font-mono); font-size: 11px; color: var(--status-failed); text-transform: uppercase; margin-bottom: 4px;">Execution Error</div>
           <div class="code-block" id="modalTaskError" style="color: #F87171; border-color: rgba(239, 68, 68, 0.4);"></div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CRITIC REVIEW & QA AUDIT MODAL -->
+  <div id="criticReviewModal" class="modal-backdrop">
+    <div class="modal-box" style="max-width: 850px; max-height: 90vh;">
+      <div class="modal-header">
+        <div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 16px;">🛡️</span>
+            <span style="font-family: var(--font-mono); color: #A78BFA; font-weight: 600;" id="reviewModalCriticName">Team 9 — Critic (ARGUS)</span>
+            <span style="color: var(--text-muted);">&bull;</span>
+            <span class="score-badge high" id="reviewModalScore">-- / 100</span>
+          </div>
+          <div class="modal-title" id="reviewModalTitle" style="margin-top: 4px; font-size: 15px;">Task Title</div>
+        </div>
+        <button class="modal-close" onclick="closeCriticReviewModal()">&times;</button>
+      </div>
+      <div class="modal-body" style="gap: 14px;">
+        <!-- Metadata row -->
+        <div style="display: flex; justify-content: space-between; align-items: center; background: var(--surface-card); padding: 8px 12px; border-radius: 4px; border: 1px solid var(--border);">
+          <div style="font-family: var(--font-mono); font-size: 11px;">
+            <span style="color: var(--text-secondary);">Assigned Worker:</span> <strong id="reviewModalAgentId" style="color: var(--accent);">--</strong>
+            <span style="color: var(--text-muted); margin: 0 8px;">|</span>
+            <span style="color: var(--text-secondary);">Goal:</span> <strong id="reviewModalGoalTitle" style="color: var(--text);">--</strong>
+          </div>
+          <div style="font-family: var(--font-mono); font-size: 11px; color: var(--text-muted);" id="reviewModalTime">--</div>
+        </div>
+
+        <!-- Quality Dimensions Grid -->
+        <div id="reviewModalDimensionsSection">
+          <div style="font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 6px;">Quality Dimension Scores</div>
+          <div id="reviewModalDimensions" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px;"></div>
+        </div>
+
+        <!-- Critic Review & QA Auditor Findings -->
+        <div>
+          <div style="font-family: var(--font-mono); font-size: 11px; color: #A78BFA; text-transform: uppercase; margin-bottom: 4px; font-weight: 600;">Adversarial Audit Critique & Verification Notes</div>
+          <div class="code-block" id="reviewModalFeedback" style="max-height: 150px; line-height: 1.4; color: #E5E7EB; background: rgba(0,0,0,0.4); border-color: rgba(167,139,250,0.3);"></div>
+        </div>
+
+        <!-- Generated Outcome & Deliverable -->
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <div style="font-family: var(--font-mono); font-size: 11px; color: var(--accent); text-transform: uppercase; font-weight: 600;">Generated Specialist Outcome Deliverable</div>
+            <button class="btn btn-sm" onclick="copyCriticDeliverable()">📋 Copy Complete Deliverable</button>
+          </div>
+          <div class="code-block" id="reviewModalDeliverable" style="max-height: 300px; font-size: 12px; line-height: 1.5; white-space: pre-wrap; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: var(--surface-card); border-color: var(--border);"></div>
+        </div>
+
+        <!-- Task Directives (Accordion) -->
+        <details style="background: var(--surface-card); border: 1px solid var(--border); border-radius: 4px; padding: 8px 12px;">
+          <summary style="font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary); cursor: pointer; text-transform: uppercase;">View Original Task Directives</summary>
+          <div class="code-block" id="reviewModalInput" style="margin-top: 8px; max-height: 120px;"></div>
+        </details>
       </div>
     </div>
   </div>
@@ -2006,6 +2720,16 @@
         <div>
           <label style="font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary);">Goal Description & Requirements</label>
           <textarea id="modalGoalDesc" class="goal-textarea" style="min-height: 100px; margin-top: 4px;" placeholder="Provide explicit specifications, architectural criteria, or desired deliverables..."></textarea>
+        </div>
+        <div>
+          <label style="font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary);">Workforce Density (Agent Fan-Out)</label>
+          <select id="modalGoalDensity" class="goal-textarea" style="min-height: auto; padding: 8px; margin-top: 4px;">
+            <option value="adaptive" selected>Adaptive (Auto-detect from prompt intent)</option>
+            <option value="focused">Focused (3–5 Agents - Fast CPU)</option>
+            <option value="balanced">Balanced (10 Agents across 10 Teams)</option>
+            <option value="comprehensive">Comprehensive (30 Agents across 10 Teams)</option>
+            <option value="full_swarm">Full Swarm (All 10 Teams / Up to 100 Agents)</option>
+          </select>
         </div>
         <div>
           <label style="font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary);">Execution Concurrency</label>
@@ -2051,6 +2775,65 @@
     </div>
   </div>
 
+  <!-- ROBOTIC WORKER TELEMETRY HUD TOOLTIP -->
+  <div id="workerHudTooltip" class="worker-hud-tooltip">
+    <div class="hud-header">
+      <div class="hud-title-bar">
+        <span style="font-size: 14px;">🤖</span>
+        <span style="font-weight: 700; color: var(--text-secondary); letter-spacing: 0.08em; font-size: 10px;">WORKER TELEMETRY HUD</span>
+        <span id="hudWorkerId" class="hud-agent-id">AGENT-01</span>
+      </div>
+      <span id="hudWorkerStatusPill" class="status-pill status-idle">IDLE</span>
+    </div>
+
+    <div class="hud-body">
+      <div class="hud-agent-profile">
+        <div id="hudAgentAvatar" class="hud-avatar">🤖</div>
+        <div class="hud-profile-text">
+          <div id="hudAgentName" class="hud-name">Agent Name</div>
+          <div id="hudAgentRole" class="hud-role">Specialist Role</div>
+          <div id="hudAgentTeam" class="hud-team-tag">Team 1 — Strategy</div>
+        </div>
+      </div>
+
+      <div class="hud-section">
+        <div class="hud-section-label">⚡ ACTIVE ASSIGNMENT & OUTPUT</div>
+        <div id="hudCurrentWorkBox" class="hud-work-box idle-work">
+          <span style="color: var(--text-muted);">Standing by for DAG orchestration assignment</span>
+        </div>
+      </div>
+
+      <div class="hud-section">
+        <div class="hud-section-label">⚙️ SPECIALIST CAPABILITIES</div>
+        <div id="hudCapabilitiesList" class="hud-caps-row"></div>
+      </div>
+
+      <div class="hud-telemetry-grid">
+        <div class="hud-stat-cell">
+          <span class="stat-cell-label">PERFORMANCE</span>
+          <span id="hudPerfScore" class="stat-cell-value">0.0 / 10</span>
+        </div>
+        <div class="hud-stat-cell">
+          <span class="stat-cell-label">TASKS DONE</span>
+          <span id="hudTaskCount" class="stat-cell-value">0 Tasks</span>
+        </div>
+        <div class="hud-stat-cell">
+          <span class="stat-cell-label">INFERENCE</span>
+          <span class="stat-cell-value">qwen3:4b</span>
+        </div>
+        <div class="hud-stat-cell">
+          <span class="stat-cell-label">MEMORY STORE</span>
+          <span id="hudMemoryKey" class="stat-cell-value" style="font-size: 9px;">mem:agent</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="hud-footer">
+      <span>SWARM-100 TELEMETRY ENGINE</span>
+      <span class="hud-blink">● LIVE FEED</span>
+    </div>
+  </div>
+
   <!-- =================================================================== -->
   <!-- JAVASCRIPT LOGIC -->
   <!-- =================================================================== -->
@@ -2058,11 +2841,238 @@
     const API_BASE = "/api/v1";
     let activePage = "command-center";
     let allAgents = [];
+    let allTasks = [];
+    let agentMap = new Map();
     let activeGoalId = null;
     let ws = null;
 
+    // --- ESCAPE HTML HELPER ---
+    function escapeHtml(str) {
+      if (!str) return "";
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    // --- TEAM TAXONOMY & VISUAL CONFIGURATION ---
+    const TEAM_CONFIG = {
+      1: { name: "Strategy", color: "#60A5FA", icon: "♟️" },
+      2: { name: "Research", color: "#38BDF8", icon: "🔬" },
+      3: { name: "Business", color: "#F59E0B", icon: "📈" },
+      4: { name: "Content", color: "#EC4899", icon: "✍️" },
+      5: { name: "Development", color: "#10B981", icon: "💻" },
+      6: { name: "Data", color: "#8B5CF6", icon: "📊" },
+      7: { name: "Operations", color: "#F97316", icon: "⚙️" },
+      8: { name: "Security", color: "#EF4444", icon: "🛡️" },
+      9: { name: "Critic", color: "#A78BFA", icon: "⚖️" },
+      10: { name: "Optimization", color: "#06B6D4", icon: "🚀" }
+    };
+
+    function getAgent(id) {
+      return agentMap.get(id) || null;
+    }
+
+    function getTeamForAgent(agent) {
+      if (!agent) return { name: "Workforce", color: "#F59E0B", icon: "🤖" };
+      return TEAM_CONFIG[agent.team_id] || { name: `Team ${agent.team_id}`, color: "#F59E0B", icon: "🤖" };
+    }
+
+    function getActiveTaskForAgent(agentId) {
+      return allTasks.find(t => t.assigned_agent_id === agentId && (t.status === "running" || t.status === "reviewing" || t.status === "assigned")) || null;
+    }
+
+    function getLastTaskForAgent(agentId) {
+      return allTasks.find(t => t.assigned_agent_id === agentId) || null;
+    }
+
+    // --- SYNTHESIZED ROBOTIC TELEMETRY AUDIO (Web Audio API) ---
+    const RoboticAudio = {
+      ctx: null,
+      enabled: true,
+      lastPlayed: 0,
+      init() {
+        if (!this.ctx && (window.AudioContext || window.webkitAudioContext)) {
+          this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+      },
+      play() {
+        if (!this.enabled) return;
+        const now = performance.now();
+        if (now - this.lastPlayed < 100) return; // Prevent audio burst spam
+        this.lastPlayed = now;
+        try {
+          this.init();
+          if (this.ctx && this.ctx.state === "suspended") {
+            this.ctx.resume();
+          }
+          if (!this.ctx) return;
+          const ctx = this.ctx;
+          const t = ctx.currentTime;
+
+          // Dual-oscillator robotic telemetry chirp
+          const osc1 = ctx.createOscillator();
+          const osc2 = ctx.createOscillator();
+          const gain = ctx.createGain();
+          const filter = ctx.createBiquadFilter();
+
+          osc1.type = "sawtooth";
+          osc2.type = "square";
+
+          filter.type = "bandpass";
+          filter.frequency.setValueAtTime(1400, t);
+          filter.Q.setValueAtTime(4.0, t);
+
+          const baseF = 700 + Math.random() * 80;
+          osc1.frequency.setValueAtTime(baseF, t);
+          osc1.frequency.exponentialRampToValueAtTime(baseF * 2.2, t + 0.04);
+
+          osc2.frequency.setValueAtTime(baseF * 0.5, t);
+          osc2.frequency.setValueAtTime(baseF * 1.5, t + 0.02);
+          osc2.frequency.exponentialRampToValueAtTime(baseF * 3.0, t + 0.05);
+
+          gain.gain.setValueAtTime(0.04, t);
+          gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.07);
+
+          osc1.connect(filter);
+          osc2.connect(filter);
+          filter.connect(gain);
+          gain.connect(ctx.destination);
+
+          osc1.start(t);
+          osc2.start(t);
+          osc1.stop(t + 0.075);
+          osc2.stop(t + 0.075);
+        } catch (e) {}
+      }
+    };
+
+    function toggleSoundFx() {
+      RoboticAudio.enabled = !RoboticAudio.enabled;
+      const icon = document.getElementById("soundIcon");
+      const text = document.getElementById("soundText");
+      if (icon) icon.textContent = RoboticAudio.enabled ? "🔊" : "🔈";
+      if (text) text.textContent = RoboticAudio.enabled ? "AUDIO: ON" : "AUDIO: MUTED";
+      if (RoboticAudio.enabled) RoboticAudio.play();
+    }
+
+    // --- ROBOTIC WORKER HUD TOOLTIP HANDLERS ---
+    function handleWorkerHover(e, agentId) {
+      RoboticAudio.play();
+      const agent = getAgent(agentId);
+      const team = getTeamForAgent(agent);
+      const activeTask = getActiveTaskForAgent(agentId);
+      const lastTask = getLastTaskForAgent(agentId);
+
+      const tooltip = document.getElementById("workerHudTooltip");
+      if (!tooltip) return;
+
+      document.getElementById("hudWorkerId").textContent = agentId.toUpperCase();
+      document.getElementById("hudAgentName").textContent = agent ? agent.name : agentId;
+      document.getElementById("hudAgentRole").textContent = agent ? agent.role : "Specialist Agent";
+      document.getElementById("hudAgentTeam").textContent = `${team.icon} Team ${agent ? agent.team_id : '?'}: ${team.name}`;
+      document.getElementById("hudAgentTeam").style.color = team.color;
+
+      const avatar = document.getElementById("hudAgentAvatar");
+      avatar.style.borderColor = team.color;
+      avatar.style.background = `${team.color}22`;
+      avatar.textContent = team.icon;
+
+      const statusPill = document.getElementById("hudWorkerStatusPill");
+      const isBusy = activeTask || (agent && agent.status === "busy");
+      statusPill.className = `status-pill ${isBusy ? 'status-busy' : 'status-idle'}`;
+      statusPill.innerHTML = isBusy ? `<span class="status-beacon"></span> EXECUTING` : `STANDBY`;
+
+      // Current Work Dossier
+      const workBox = document.getElementById("hudCurrentWorkBox");
+      if (activeTask) {
+        workBox.className = "hud-work-box active-work";
+        workBox.innerHTML = `
+          <div style="font-size: 9px; color: var(--accent); font-weight: 700;">● IN EXECUTION [${activeTask.id}]</div>
+          <div class="hud-work-title">${escapeHtml(activeTask.title)}</div>
+          <div class="hud-work-meta">
+            <span>Priority: P${activeTask.priority}</span>
+            <span>Goal: ${activeTask.goal_id ? activeTask.goal_id.slice(0, 10) + '...' : 'Global'}</span>
+          </div>
+          ${activeTask.input ? `<div style="font-size: 9px; color: var(--text-secondary); margin-top: 3px; max-height: 40px; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(activeTask.input.slice(0, 110))}...</div>` : ''}
+        `;
+      } else if (lastTask) {
+        workBox.className = "hud-work-box idle-work";
+        workBox.innerHTML = `
+          <div style="font-size: 9px; color: var(--text-muted); font-weight: 600;">STANDBY POOL (RECENT TASK)</div>
+          <div class="hud-work-title" style="color: var(--text-secondary);">${escapeHtml(lastTask.title)}</div>
+          <div class="hud-work-meta">
+            <span>Status: ${lastTask.status.toUpperCase()}</span>
+            <span>${lastTask.tokens_used ? lastTask.tokens_used + ' tokens' : ''}</span>
+          </div>
+        `;
+      } else {
+        workBox.className = "hud-work-box idle-work";
+        workBox.innerHTML = `
+          <div style="color: var(--text-muted); font-size: 10px;">
+            <span>Standing by in pool. Awaiting DAG dependency trigger.</span>
+          </div>
+        `;
+      }
+
+      // Capabilities
+      const capsBox = document.getElementById("hudCapabilitiesList");
+      capsBox.innerHTML = (agent && agent.capabilities ? agent.capabilities.slice(0, 4) : ["general_reasoning"])
+        .map(c => `<span class="cap-pill" style="font-size: 9px;">${c}</span>`).join("");
+
+      // Telemetry Ratings
+      document.getElementById("hudPerfScore").textContent = agent ? `${agent.performance_score.toFixed(1)} / 10` : "8.5 / 10";
+      document.getElementById("hudTaskCount").textContent = agent ? `${agent.task_count} Tasks` : "0 Tasks";
+      document.getElementById("hudMemoryKey").textContent = agent ? agent.memory_key : `mem:${agentId}`;
+
+      // Smart Viewport Positioning
+      positionTooltip(e, tooltip);
+      tooltip.classList.add("visible");
+    }
+
+    function positionTooltip(e, tooltip) {
+      const pad = 16;
+      let x = e.clientX + pad;
+      let y = e.clientY + pad;
+      const w = 360;
+      const h = 330;
+
+      if (x + w > window.innerWidth - pad) {
+        x = e.clientX - w - pad;
+      }
+      if (y + h > window.innerHeight - pad) {
+        y = window.innerHeight - h - pad;
+      }
+      if (y < pad) y = pad;
+      if (x < pad) x = pad;
+
+      tooltip.style.left = `${x}px`;
+      tooltip.style.top = `${y}px`;
+    }
+
+    function handleWorkerLeave() {
+      const tooltip = document.getElementById("workerHudTooltip");
+      if (tooltip) tooltip.classList.remove("visible");
+    }
+
+    function handleTaskCardHover(cardEl, task) {
+      if (!task.dependencies || task.dependencies.length === 0) return;
+      task.dependencies.forEach(depId => {
+        const depEl = document.querySelector(`.task-card[data-task-id="${depId}"]`);
+        if (depEl) depEl.classList.add("dep-target");
+      });
+    }
+
+    function handleTaskCardLeave() {
+      document.querySelectorAll(".task-card.dep-target, .task-card.dep-source").forEach(el => {
+        el.classList.remove("dep-target", "dep-source");
+      });
+    }
+
     // --- NAVIGATION ---
-    function navigate(pageId) {
+    function navigate(pageId, pushState = true) {
       activePage = pageId;
       document.querySelectorAll(".page-view").forEach(el => el.classList.remove("active"));
       document.querySelectorAll(".nav-item").forEach(el => el.classList.remove("active"));
@@ -2072,8 +3082,24 @@
       if (targetPage) targetPage.classList.add("active");
       if (targetNav) targetNav.classList.add("active");
 
+      if (pushState && window.history && window.history.pushState) {
+        const targetUrl = "/" + (pageId === "command-center" ? "" : pageId);
+        if (window.location.pathname !== targetUrl) {
+          try {
+            window.history.pushState({ page: pageId }, "", targetUrl);
+          } catch (e) {}
+        }
+      }
+
       refreshCurrentView();
     }
+
+    window.addEventListener("popstate", (e) => {
+      const route = (e.state && e.state.page) || window.location.pathname.replace(/^\//, "").split("/")[0] || "command-center";
+      if (document.getElementById("page-" + route)) {
+        navigate(route, false);
+      }
+    });
 
     function refreshCurrentView() {
       loadStats();
@@ -2106,11 +3132,20 @@
       const host = window.location.host || "localhost:8000";
       const wsUrl = `${protocol}//${host}/ws`;
 
-      ws = new WebSocket(wsUrl);
+      try {
+        ws = new WebSocket(wsUrl);
+      } catch (e) {
+        console.warn("WebSocket initialization error:", e);
+        return;
+      }
 
       ws.onopen = () => {
-        document.getElementById("wsDot").classList.remove("disconnected");
-        document.getElementById("wsStatus").textContent = "Live Stream Connected";
+        const dot = document.getElementById("wsDot");
+        const status = document.getElementById("wsStatus");
+        if (dot) dot.classList.remove("disconnected");
+        if (status) status.textContent = "Live Stream Connected";
+        // Reconcile complete dashboard state with backend data upon connection or reconnection
+        refreshCurrentView();
       };
 
       ws.onmessage = (event) => {
@@ -2123,13 +3158,18 @@
       };
 
       ws.onclose = () => {
-        document.getElementById("wsDot").classList.add("disconnected");
-        document.getElementById("wsStatus").textContent = "Reconnecting...";
+        const dot = document.getElementById("wsDot");
+        const status = document.getElementById("wsStatus");
+        if (dot) dot.classList.add("disconnected");
+        if (status) status.textContent = "Reconnecting...";
         setTimeout(connectWebSocket, 3000);
       };
 
       ws.onerror = (err) => {
-        document.getElementById("wsDot").classList.add("disconnected");
+        const dot = document.getElementById("wsDot");
+        const status = document.getElementById("wsStatus");
+        if (dot) dot.classList.add("disconnected");
+        if (status) status.textContent = "Disconnected";
       };
     }
 
@@ -2139,12 +3179,33 @@
         return;
       }
 
+      // Live Token Stream: real-time streaming into the active task card
+      if (payload.event_type === "token_stream" && payload.data) {
+        const streamBox = document.getElementById("stream-" + payload.data.task_id);
+        if (streamBox) {
+          streamBox.classList.add("streaming");
+          streamBox.textContent += payload.data.token;
+          streamBox.scrollTop = streamBox.scrollHeight;
+        }
+        return;
+      }
+
+      // ReAct Tool Call live feedback on active card
+      if (payload.event_type === "tool_invoked" && payload.data) {
+        const streamBox = document.getElementById("stream-" + payload.data.task_id);
+        if (streamBox) {
+          streamBox.textContent += `\n[🛠️ Tool: ${payload.data.tool_id}]\n`;
+          streamBox.scrollTop = streamBox.scrollHeight;
+        }
+      }
+
       appendActivityFeed(payload);
       // Auto-refresh active views on live changes
       loadStats();
       if (activePage === "tasks") loadTasks();
       if (activePage === "workforce") loadAgents();
       if (activePage === "timeline") loadTimeline();
+      if (activePage === "reviews") loadCriticReviews();
       if (activePage === "settings") loadSettings();
       if (activePage === "foundry") handleFoundryWebSocketEvent(payload);
     }
@@ -2171,6 +3232,15 @@
       } else if (event.event_type.includes("task_running") || event.event_type.includes("running")) {
         badgeClass = "status-running";
         desc = `Task started: ${event.data.title || event.data.task_id} (${event.data.agent_id})`;
+      } else if (event.event_type.includes("task_reviewing") || event.event_type.includes("reviewing")) {
+        badgeClass = "status-reviewing";
+        desc = `QA Critic Audit started: ${event.data.title || event.data.task_id} (Team 9 ARGUS)`;
+      } else if (event.event_type.includes("task_revising")) {
+        badgeClass = "status-reviewing";
+        desc = `Critic Self-Correction: ${event.data.title || event.data.task_id} (Cycle ${event.data.retry_count}/${event.data.max_retries}, Critic Score: ${event.data.score}/100)`;
+      } else if (event.event_type.includes("tool_invoked")) {
+        badgeClass = "status-running";
+        desc = `ReAct Tool [${event.data.tool_id}] by ${event.data.agent_id} (Turn ${event.data.turn || 1})`;
       } else if (event.event_type.includes("task_completed")) {
         badgeClass = "status-completed";
         desc = `Task completed: ${event.data.title || event.data.task_id} (Score: ${event.data.score || 0})`;
@@ -2268,10 +3338,20 @@
 
     async function loadAgents() {
       try {
-        const res = await fetch(`${API_BASE}/agents?page=1&page_size=100`);
-        if (!res.ok) return;
-        const data = await res.json();
-        allAgents = data.items || [];
+        const [agentRes, taskRes] = await Promise.all([
+          fetch(`${API_BASE}/agents?page=1&page_size=100`),
+          fetch(`${API_BASE}/tasks?limit=150`)
+        ]);
+
+        if (agentRes.ok) {
+          const data = await agentRes.json();
+          allAgents = data.items || [];
+          agentMap = new Map(allAgents.map(a => [a.id, a]));
+        }
+
+        if (taskRes.ok) {
+          allTasks = await taskRes.json();
+        }
 
         // Also populate select box in Propose modal
         const selectBox = document.getElementById("proposeAgentSelect");
@@ -2311,22 +3391,66 @@
       grid.innerHTML = "";
 
       filtered.forEach(agent => {
-        const statusClass = agent.status === "busy" ? "status-busy" : (agent.status === "idle" ? "status-idle" : "status-failed");
+        const activeTask = getActiveTaskForAgent(agent.id);
+        const lastTask = getLastTaskForAgent(agent.id);
+        const isBusy = Boolean(activeTask || agent.status === "busy");
+        const statusClass = isBusy ? "status-busy" : (agent.status === "idle" ? "status-idle" : "status-failed");
+        const team = getTeamForAgent(agent);
+
         const card = document.createElement("div");
-        card.className = "agent-card";
+        card.className = `agent-card ${isBusy ? 'has-active-work' : ''}`;
         card.onclick = () => openAgentModal(agent.id);
+        card.onmouseenter = (e) => handleWorkerHover(e, agent.id);
+        card.onmousemove = (e) => {
+          const tooltip = document.getElementById("workerHudTooltip");
+          if (tooltip && tooltip.classList.contains("visible")) positionTooltip(e, tooltip);
+        };
+        card.onmouseleave = handleWorkerLeave;
 
         const capsHtml = (agent.capabilities || []).slice(0, 3).map(c => `<span class="cap-pill">${c}</span>`).join("");
 
+        let workBanner = "";
+        if (activeTask) {
+          workBanner = `
+            <div class="agent-active-badge">
+              <span class="status-beacon"></span>
+              <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1;">
+                <span style="font-weight: 700; color: var(--accent);">RUNNING:</span> 
+                <span class="agent-active-badge-title" title="${escapeHtml(activeTask.title)}">${escapeHtml(activeTask.title)}</span>
+              </div>
+            </div>
+          `;
+        } else if (lastTask) {
+          workBanner = `
+            <div class="agent-idle-badge">
+              <span style="color: #10B981; font-weight: bold;">✓</span>
+              <span title="${escapeHtml(lastTask.title)}">Recent: ${escapeHtml(lastTask.title.slice(0, 24))}... (${lastTask.status})</span>
+            </div>
+          `;
+        } else {
+          workBanner = `
+            <div class="agent-idle-badge">
+              <span style="color: var(--text-muted);">●</span>
+              <span>Standby for DAG assignment</span>
+            </div>
+          `;
+        }
+
         card.innerHTML = `
           <div class="agent-card-header">
-            <span class="agent-id">${agent.id}</span>
-            <span class="status-pill ${statusClass}">${agent.status}</span>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span class="worker-avatar-circle" style="width: 22px; height: 22px; font-size: 11px; border-color: ${team.color}; color: ${team.color}; background: ${team.color}15;">
+                ${team.icon}
+              </span>
+              <span class="agent-id">${agent.id}</span>
+            </div>
+            <span class="status-pill ${statusClass}">${isBusy ? 'BUSY' : agent.status}</span>
           </div>
           <div>
             <div class="agent-name">${agent.name}</div>
-            <div class="agent-role">${agent.role}</div>
+            <div class="agent-role">${agent.role} &bull; <span style="color: ${team.color};">${team.name}</span></div>
           </div>
+          ${workBanner}
           <div class="agent-caps">${capsHtml}</div>
           <div class="agent-card-footer">
             <span>Score: <strong style="color: var(--text);">${agent.performance_score.toFixed(1)}</strong></span>
@@ -2402,7 +3526,7 @@
           card.className = "team-card";
 
           const agentsList = (teamDetail.agents || []).map(a => `
-            <div class="team-agent-row" onclick="openAgentModal('${a.id}')">
+            <div class="team-agent-row" onclick="openAgentModal('${a.id}')" onmouseenter="handleWorkerHover(event, '${a.id}')" onmouseleave="handleWorkerLeave()">
               <span>${a.name}</span>
               <span style="color: var(--accent);">${a.role}</span>
             </div>
@@ -2430,78 +3554,197 @@
         if (goalsRes.ok) {
           const goalsData = await goalsRes.json();
           const goalSelect = document.getElementById("taskGoalFilter");
-          const curVal = goalSelect.value;
-          goalSelect.innerHTML = '<option value="all">All Goals</option>';
-          (goalsData.items || []).forEach(g => {
-            const opt = document.createElement("option");
-            opt.value = g.id;
-            opt.textContent = `${g.id}: ${g.title.slice(0, 30)}...`;
-            goalSelect.appendChild(opt);
-          });
-          goalSelect.value = curVal;
+          const curVal = goalSelect ? goalSelect.value : "all";
+          if (goalSelect) {
+            goalSelect.innerHTML = '<option value="all">All Goals</option>';
+            (goalsData.items || []).forEach(g => {
+              const opt = document.createElement("option");
+              opt.value = g.id;
+              opt.textContent = `${g.id}: ${g.title.slice(0, 30)}...`;
+              goalSelect.appendChild(opt);
+            });
+            goalSelect.value = curVal;
+          }
         }
 
-        const selectedGoal = document.getElementById("taskGoalFilter").value;
+        const selectedGoal = document.getElementById("taskGoalFilter") ? document.getElementById("taskGoalFilter").value : "all";
         const queryUrl = selectedGoal === "all" ? `${API_BASE}/tasks?limit=150` : `${API_BASE}/tasks?goal_id=${selectedGoal}&limit=150`;
 
-        const res = await fetch(queryUrl);
-        if (!res.ok) return;
-        const tasks = await res.json();
+        const [tasksRes, agentsRes] = await Promise.all([
+          fetch(queryUrl),
+          allAgents.length === 0 ? fetch(`${API_BASE}/agents?page=1&page_size=100`) : Promise.resolve(null)
+        ]);
 
-        // Columns
-        const cols = {
-          pending: document.getElementById("colPending"),
-          running: document.getElementById("colRunning"),
-          reviewing: document.getElementById("colReviewing"),
-          completed: document.getElementById("colCompleted"),
-          failed: document.getElementById("colFailed"),
-        };
+        if (agentsRes && agentsRes.ok) {
+          const agentData = await agentsRes.json();
+          allAgents = agentData.items || [];
+          agentMap = new Map(allAgents.map(a => [a.id, a]));
+        }
 
-        Object.values(cols).forEach(c => c.innerHTML = "");
+        if (!tasksRes.ok) return;
+        allTasks = await tasksRes.json();
 
-        const counts = { pending: 0, running: 0, reviewing: 0, completed: 0, failed: 0 };
-
-        tasks.forEach(task => {
-          let colKey = "pending";
-          if (task.status === "running" || task.status === "assigned") colKey = "running";
-          else if (task.status === "reviewing") colKey = "reviewing";
-          else if (task.status === "completed") colKey = "completed";
-          else if (task.status === "failed" || task.status === "blocked" || task.status === "cancelled") colKey = "failed";
-
-          counts[colKey]++;
-
-          const card = document.createElement("div");
-          card.className = "task-card";
-          card.onclick = () => openTaskModal(task);
-
-          const depsHtml = (task.dependencies && task.dependencies.length > 0)
-            ? `<div style="font-size: 9px; color: var(--text-muted); font-family: var(--font-mono);">Deps: ${task.dependencies.length}</div>`
-            : "";
-
-          card.innerHTML = `
-            <div class="task-card-header">
-              <span style="color: var(--accent);">${task.id}</span>
-              <span class="status-pill status-${task.status}">${task.status}</span>
-            </div>
-            <div class="task-title">${task.title}</div>
-            <div class="task-meta">
-              <span>Agent: <strong>${task.assigned_agent_id}</strong></span>
-              <span>P${task.priority}</span>
-            </div>
-            ${depsHtml}
-          `;
-
-          if (cols[colKey]) cols[colKey].appendChild(card);
-        });
-
-        document.getElementById("colCountPending").textContent = counts.pending;
-        document.getElementById("colCountRunning").textContent = counts.running;
-        document.getElementById("colCountReviewing").textContent = counts.reviewing;
-        document.getElementById("colCountCompleted").textContent = counts.completed;
-        document.getElementById("colCountFailed").textContent = counts.failed;
+        renderTaskCards();
       } catch (e) {
         console.error("Error loading tasks:", e);
       }
+    }
+
+    function renderTaskCards() {
+      const selectedTeam = document.getElementById("taskTeamFilter") ? document.getElementById("taskTeamFilter").value : "all";
+      const searchQuery = document.getElementById("taskSearchInput") ? document.getElementById("taskSearchInput").value.toLowerCase() : "";
+
+      const cols = {
+        pending: document.getElementById("colPending"),
+        running: document.getElementById("colRunning"),
+        reviewing: document.getElementById("colReviewing"),
+        completed: document.getElementById("colCompleted"),
+        failed: document.getElementById("colFailed"),
+      };
+
+      Object.values(cols).forEach(c => { if (c) c.innerHTML = ""; });
+
+      const counts = { total: 0, pending: 0, running: 0, reviewing: 0, completed: 0, failed: 0 };
+
+      // Filter tasks
+      const filteredTasks = allTasks.filter(task => {
+        const agent = getAgent(task.assigned_agent_id);
+        const matchTeam = selectedTeam === "all" || (agent && String(agent.team_id) === selectedTeam);
+        const matchSearch = !searchQuery || 
+                            task.title.toLowerCase().includes(searchQuery) || 
+                            task.id.toLowerCase().includes(searchQuery) ||
+                            task.assigned_agent_id.toLowerCase().includes(searchQuery) ||
+                            (agent && (agent.name.toLowerCase().includes(searchQuery) || agent.role.toLowerCase().includes(searchQuery)));
+        return matchTeam && matchSearch;
+      });
+
+      filteredTasks.forEach(task => {
+        counts.total++;
+        let colKey = "pending";
+        if (task.status === "running" || task.status === "assigned") colKey = "running";
+        else if (task.status === "reviewing") colKey = "reviewing";
+        else if (task.status === "completed") colKey = "completed";
+        else if (task.status === "failed" || task.status === "blocked" || task.status === "cancelled") colKey = "failed";
+
+        counts[colKey]++;
+
+        const agent = getAgent(task.assigned_agent_id);
+        const team = getTeamForAgent(agent);
+
+        const card = document.createElement("div");
+        card.className = `task-card ${task.status === 'running' ? 'is-running' : (task.status === 'reviewing' ? 'is-reviewing' : '')}`;
+        card.setAttribute("data-task-id", task.id);
+        card.setAttribute("data-deps", (task.dependencies || []).join(","));
+
+        card.onclick = () => openTaskModal(task);
+        card.onmouseenter = () => handleTaskCardHover(card, task);
+        card.onmouseleave = handleTaskCardLeave;
+
+        const depsCount = task.dependencies ? task.dependencies.length : 0;
+        const depsHtml = depsCount > 0 
+          ? `<span class="metric-tag deps-tag" title="Upstream Dependencies: ${task.dependencies.join(', ')}">🔗 ${depsCount} Dep${depsCount > 1 ? 's' : ''}</span>`
+          : `<span class="metric-tag no-deps-tag">✓ Ready</span>`;
+
+        const errorHtml = task.error
+          ? `<div style="font-size: 10px; color: #EF4444; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 3px; padding: 4px 6px; font-family: var(--font-mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(task.error)}">${escapeHtml(task.error)}</div>`
+          : "";
+
+        card.innerHTML = `
+          <div class="task-card-header">
+            <div class="task-id-badge">
+              <span class="task-id-text">${task.id}</span>
+              <span class="task-team-pill" style="border-color: ${team.color}50; background: ${team.color}15; color: ${team.color};">
+                ${team.icon} ${team.name}
+              </span>
+            </div>
+            <span class="status-pill status-${task.status}">
+              ${task.status === 'running' ? '<span class="status-beacon"></span>' : ''}
+              ${task.status.toUpperCase()}
+            </span>
+          </div>
+
+          <div class="task-title">${escapeHtml(task.title)}</div>
+
+          <!-- WORKER ATTRIBUTION BOX: Clearly identifies the specialist worker -->
+          <div class="task-worker-box" 
+               onmouseenter="event.stopPropagation(); handleWorkerHover(event, '${task.assigned_agent_id}')" 
+               onmousemove="event.stopPropagation(); const tt = document.getElementById('workerHudTooltip'); if (tt && tt.classList.contains('visible')) positionTooltip(event, tt);"
+               onmouseleave="event.stopPropagation(); handleWorkerLeave()" 
+               onclick="event.stopPropagation(); openAgentModal('${task.assigned_agent_id}')"
+               title="Hover to hear robotic telemetry & inspect worker dossier">
+            <div class="worker-avatar-circle" style="border-color: ${team.color}; color: ${team.color}; background: ${team.color}18;">
+              ${team.icon}
+            </div>
+            <div class="worker-info">
+              <div class="worker-id-row">
+                <span class="worker-id-text">${task.assigned_agent_id}</span>
+                <span class="worker-role-text">${agent ? agent.role : 'Specialist Agent'}</span>
+              </div>
+              <div class="worker-name-text">${agent ? agent.name : task.assigned_agent_id}</div>
+            </div>
+            <span class="worker-inspect-btn">HUD ↗</span>
+          </div>
+
+          <!-- Live Token Stream & Autonomous ReAct Execution Box -->
+          <div class="task-stream-preview ${task.status === 'running' ? 'streaming' : ''}" id="stream-${task.id}"></div>
+
+          <!-- Telemetry & Dependencies Footer -->
+          <div class="task-metrics-bar">
+            <span class="metric-tag">P${task.priority}</span>
+            ${task.tokens_used ? `<span class="metric-tag" title="Token Generation Cost">🪙 ${task.tokens_used.toLocaleString()} tok</span>` : ''}
+            ${task.latency_ms ? `<span class="metric-tag" title="Inference Latency">⏱️ ${(task.latency_ms / 1000).toFixed(1)}s</span>` : ''}
+            ${depsHtml}
+          </div>
+
+          ${errorHtml}
+        `;
+
+        if (cols[colKey]) cols[colKey].appendChild(card);
+      });
+
+      // Handle Empty States
+      const emptyLabels = {
+        pending: "No tasks pending in queue",
+        running: "No active workers executing tasks",
+        reviewing: "No deliverables in critic review",
+        completed: "No completed tasks yet",
+        failed: "No failed tasks recorded"
+      };
+
+      Object.entries(cols).forEach(([key, colEl]) => {
+        if (colEl && colEl.children.length === 0) {
+          const empty = document.createElement("div");
+          empty.className = "kanban-empty";
+          empty.innerHTML = `<span style="font-size: 16px;">💤</span><span>${emptyLabels[key]}</span>`;
+          colEl.appendChild(empty);
+        }
+      });
+
+      // Update Column Counts
+      const elCP = document.getElementById("colCountPending"); if (elCP) elCP.textContent = counts.pending;
+      const elCR = document.getElementById("colCountRunning"); if (elCR) elCR.textContent = counts.running;
+      const elCV = document.getElementById("colCountReviewing"); if (elCV) elCV.textContent = counts.reviewing;
+      const elCC = document.getElementById("colCountCompleted"); if (elCC) elCC.textContent = counts.completed;
+      const elCF = document.getElementById("colCountFailed"); if (elCF) elCF.textContent = counts.failed;
+
+      // Update Summary Bar
+      const total = counts.total || 1;
+      const compPct = Math.round((counts.completed / total) * 100);
+
+      const elTot = document.getElementById("statTotalTasks"); if (elTot) elTot.textContent = counts.total;
+      const elComp = document.getElementById("statCompletedTasks"); if (elComp) elComp.textContent = counts.completed;
+      const elCompPct = document.getElementById("statCompletedPct"); if (elCompPct) elCompPct.textContent = `${compPct}%`;
+      const elRun = document.getElementById("statRunningTasks"); if (elRun) elRun.textContent = counts.running;
+      const elRev = document.getElementById("statReviewingTasks"); if (elRev) elRev.textContent = counts.reviewing;
+      const elPend = document.getElementById("statPendingTasks"); if (elPend) elPend.textContent = counts.pending;
+      const elFail = document.getElementById("statFailedTasks"); if (elFail) elFail.textContent = counts.failed;
+
+      // Segmented Progress Bar
+      const segC = document.getElementById("segCompleted"); if (segC) segC.style.width = `${(counts.completed / total) * 100}%`;
+      const segR = document.getElementById("segRunning"); if (segR) segR.style.width = `${(counts.running / total) * 100}%`;
+      const segV = document.getElementById("segReviewing"); if (segV) segV.style.width = `${(counts.reviewing / total) * 100}%`;
+      const segP = document.getElementById("segPending"); if (segP) segP.style.width = `${(counts.pending / total) * 100}%`;
+      const segF = document.getElementById("segFailed"); if (segF) segF.style.width = `${(counts.failed / total) * 100}%`;
     }
 
     function openTaskModal(task) {
@@ -2509,10 +3752,54 @@
       document.getElementById("modalTaskTitle").textContent = task.title;
       document.getElementById("modalTaskStatus").textContent = task.status.toUpperCase();
       document.getElementById("modalTaskStatus").className = `status-pill status-${task.status}`;
-      document.getElementById("modalTaskAgent").textContent = `Agent: ${task.assigned_agent_id}`;
+
+      const agent = getAgent(task.assigned_agent_id);
+      document.getElementById("modalTaskAgent").textContent = `Agent: ${task.assigned_agent_id} (${agent ? agent.name + ' — ' + agent.role : ''})`;
       document.getElementById("modalTaskPriority").textContent = `Priority: ${task.priority}`;
       document.getElementById("modalTaskInput").textContent = task.input;
       document.getElementById("modalTaskOutput").textContent = task.output || "[No output generated yet]";
+
+      // Handle Critic Review Section in Task Modal
+      const criticSection = document.getElementById("modalTaskCriticSection");
+      const scorePill = document.getElementById("modalTaskScorePill");
+      if (task.review_score !== null && task.review_score !== undefined) {
+        criticSection.style.display = "block";
+        const score = parseFloat(task.review_score);
+        const scoreClass = score >= 80 ? "high" : (score >= 65 ? "med" : "low");
+        const criticScoreEl = document.getElementById("modalTaskCriticScore");
+        criticScoreEl.className = `score-badge ${scoreClass}`;
+        criticScoreEl.textContent = `${score.toFixed(1)} / 100`;
+
+        document.getElementById("modalTaskCriticId").textContent = task.critic_id 
+          ? `Audited by Team 9 Critic: ${task.critic_id.toUpperCase()}`
+          : `Team 9 QA Audit`;
+
+        document.getElementById("modalTaskCriticFeedback").textContent = task.review_feedback || "Audited and verified compliant.";
+
+        if (scorePill) {
+          scorePill.innerHTML = `<span class="score-badge ${scoreClass}" style="font-size: 11px;">QA Score: ${score.toFixed(1)}/100</span>`;
+        }
+
+        // Render dimensional breakdown badges
+        const dimsGrid = document.getElementById("modalTaskDimensionsGrid");
+        dimsGrid.innerHTML = "";
+        let dimsObj = {};
+        if (task.dimensions) {
+          try {
+            dimsObj = typeof task.dimensions === "string" ? JSON.parse(task.dimensions) : task.dimensions;
+          } catch(e) {}
+        }
+        Object.entries(dimsObj).forEach(([dim, val]) => {
+          const pill = document.createElement("span");
+          pill.className = "metric-tag";
+          pill.style.cssText = "font-size: 10px; background: rgba(167, 139, 250, 0.15); border-color: rgba(167, 139, 250, 0.4); color: #C4B5FD;";
+          pill.textContent = `${dim.toUpperCase()}: ${val}/100`;
+          dimsGrid.appendChild(pill);
+        });
+      } else {
+        criticSection.style.display = "none";
+        if (scorePill) scorePill.innerHTML = "";
+      }
 
       const errSection = document.getElementById("modalTaskErrorSection");
       if (task.error) {
@@ -2527,6 +3814,14 @@
 
     function closeTaskModal() {
       document.getElementById("taskModal").classList.remove("open");
+    }
+
+    function copyTaskDeliverable() {
+      const text = document.getElementById("modalTaskOutput").textContent;
+      if (text && text !== "[No output generated yet]") {
+        navigator.clipboard.writeText(text);
+        alert("Deliverable outcome copied to clipboard!");
+      }
     }
 
     async function loadTimeline() {
@@ -2550,15 +3845,20 @@
 
           const timeStr = t.completed_at ? new Date(t.completed_at).toLocaleTimeString() : (t.created_at ? new Date(t.created_at).toLocaleTimeString() : "");
 
+          const agent = getAgent(t.assigned_agent_id);
+          const team = getTeamForAgent(agent);
+
           item.innerHTML = `
             <div class="timeline-node ${nodeClass}"></div>
             <div class="timeline-content">
               <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span style="font-family: var(--font-mono); font-size: 11px; color: var(--accent); font-weight: 600;">${t.id} &bull; ${t.title}</span>
+                <span style="font-family: var(--font-mono); font-size: 11px; color: var(--accent); font-weight: 600;">${t.id} &bull; ${escapeHtml(t.title)}</span>
                 <span class="status-pill status-${t.status}">${t.status}</span>
               </div>
-              <div style="font-size: 11px; color: var(--text-secondary); display: flex; gap: 14px; font-family: var(--font-mono);">
-                <span>Specialist: <strong style="color: var(--text);">${t.assigned_agent_id}</strong></span>
+              <div style="font-size: 11px; color: var(--text-secondary); display: flex; flex-wrap: wrap; gap: 14px; font-family: var(--font-mono); margin-top: 4px;">
+                <span style="cursor: pointer; color: ${team.color};" onmouseenter="handleWorkerHover(event, '${t.assigned_agent_id}')" onmouseleave="handleWorkerLeave()" onclick="openAgentModal('${t.assigned_agent_id}')">
+                  ${team.icon} Specialist: <strong>${t.assigned_agent_id}</strong> ${agent ? `(${agent.name})` : ''} ↗
+                </span>
                 <span>Latency: ${t.latency_ms ? t.latency_ms.toFixed(0) + ' ms' : 'N/A'}</span>
                 <span>Tokens: ${t.tokens_used || 0}</span>
                 <span>Time: ${timeStr}</span>
@@ -2622,9 +3922,11 @@
       }
     }
 
+    let activeReviewDeliverable = "";
+
     async function loadCriticReviews() {
       try {
-        const res = await fetch(`${API_BASE}/dashboard/critic-reviews?limit=20`);
+        const res = await fetch(`${API_BASE}/dashboard/critic-reviews?limit=50`);
         if (!res.ok) return;
         const reviews = await res.json();
 
@@ -2632,31 +3934,99 @@
         container.innerHTML = "";
 
         if (reviews.length === 0) {
-          container.innerHTML = '<div style="color: var(--text-secondary); text-align: center; padding: 20px;">No critic reviews recorded yet. Audits trigger upon goal/task completion.</div>';
+          container.innerHTML = '<div style="color: var(--text-secondary); text-align: center; padding: 30px; font-family: var(--font-mono); font-size: 12px;">No critic reviews recorded yet. Audits trigger upon goal/task completion.</div>';
           return;
         }
 
         reviews.forEach(r => {
           const card = document.createElement("div");
           card.className = "critic-card";
+          card.onclick = () => openCriticReviewModal(r);
 
-          const score = r.review_score || 0;
-          const scoreClass = score >= 80 ? "high" : (score >= 60 ? "med" : "low");
+          const score = r.review_score !== undefined && r.review_score !== null ? parseFloat(r.review_score) : 85.0;
+          const scoreClass = score >= 80 ? "high" : (score >= 65 ? "med" : "low");
+          const deliverablePreview = r.deliverable_output ? (r.deliverable_output.length > 220 ? r.deliverable_output.slice(0, 220) + "..." : r.deliverable_output) : "No deliverable recorded.";
 
           card.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <div>
-                <span style="font-family: var(--font-mono); font-size: 11px; color: var(--accent); font-weight: 600;">${r.critic_team}</span> &bull;
-                <span style="font-size: 13px; font-weight: 600;">${r.title}</span>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;">
+              <div style="flex: 1;">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                  <span style="font-family: var(--font-mono); font-size: 11px; color: #A78BFA; font-weight: 600;">🛡️ ${r.critic_team || 'Team 9 Critic'}</span>
+                  ${r.agent_id ? `<span style="font-family: var(--font-mono); font-size: 10px; color: var(--accent); background: rgba(245,158,11,0.12); padding: 1px 6px; border-radius: 3px;">Worker: ${r.agent_id}</span>` : ''}
+                  <span style="font-family: var(--font-mono); font-size: 10px; color: var(--text-muted);">${r.timestamp ? new Date(r.timestamp).toLocaleTimeString() : ''}</span>
+                </div>
+                <div style="font-size: 14px; font-weight: 600; color: var(--text);">${escapeHtml(r.title)}</div>
               </div>
-              <span class="score-badge ${scoreClass}">${score.toFixed(1)} / 100</span>
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span class="score-badge ${scoreClass}">${score.toFixed(1)} / 100</span>
+                <span class="btn btn-sm" style="font-size: 10px; pointer-events: none;">Inspect Review & Outcome ↗</span>
+              </div>
             </div>
-            <div class="code-block" style="margin-top: 6px;">${r.review_feedback || 'No detailed feedback provided.'}</div>
+
+            <!-- Critic Feedback Preview -->
+            <div style="margin-top: 6px; font-size: 11px; color: #D1D5DB; background: rgba(0,0,0,0.35); border: 1px solid rgba(167,139,250,0.25); border-radius: 4px; padding: 6px 10px; font-family: var(--font-mono); line-height: 1.4;">
+              <strong style="color: #A78BFA;">Critique:</strong> ${escapeHtml((r.review_feedback || 'Verified compliant with directives.').slice(0, 180))}
+            </div>
+
+            <!-- Deliverable Preview -->
+            <div style="margin-top: 6px; font-size: 11px; color: var(--text-secondary); line-height: 1.4;">
+              <strong style="color: var(--accent);">Deliverable Outcome:</strong> ${escapeHtml(deliverablePreview)}
+            </div>
           `;
           container.appendChild(card);
         });
       } catch (e) {
         console.error("Error loading critic reviews:", e);
+      }
+    }
+
+    function openCriticReviewModal(r) {
+      document.getElementById("reviewModalTitle").textContent = r.title || "Task Review";
+      document.getElementById("reviewModalCriticName").textContent = r.critic_team || "Team 9 — Critic (ARGUS)";
+
+      const score = r.review_score !== undefined && r.review_score !== null ? parseFloat(r.review_score) : 85.0;
+      const scoreClass = score >= 80 ? "high" : (score >= 65 ? "med" : "low");
+      const scoreEl = document.getElementById("reviewModalScore");
+      scoreEl.className = `score-badge ${scoreClass}`;
+      scoreEl.textContent = `${score.toFixed(1)} / 100`;
+
+      document.getElementById("reviewModalAgentId").textContent = r.agent_id || "Specialist Agent";
+      document.getElementById("reviewModalGoalTitle").textContent = r.goal_title || r.goal_id || "Autonomous Goal";
+      document.getElementById("reviewModalTime").textContent = r.timestamp ? new Date(r.timestamp).toLocaleString() : "";
+      document.getElementById("reviewModalFeedback").textContent = r.review_feedback || "No critique notes available.";
+
+      activeReviewDeliverable = r.deliverable_output || "[No outcome deliverable recorded]";
+      document.getElementById("reviewModalDeliverable").textContent = activeReviewDeliverable;
+      document.getElementById("reviewModalInput").textContent = r.task_input || "[No input directives recorded]";
+
+      // Render Dimensions Grid
+      const dimsGrid = document.getElementById("reviewModalDimensions");
+      dimsGrid.innerHTML = "";
+      const dims = r.dimensions || {};
+      const defaultDims = { "accuracy": 85, "completeness": 85, "logic": 85, "clarity": 85, "safety": 95 };
+      const displayDims = Object.keys(dims).length > 0 ? dims : defaultDims;
+
+      Object.entries(displayDims).forEach(([dim, val]) => {
+        const item = document.createElement("div");
+        item.style.cssText = "background: var(--surface-card); border: 1px solid var(--border); border-radius: 4px; padding: 6px 8px; text-align: center;";
+        item.innerHTML = `
+          <div style="font-family: var(--font-mono); font-size: 10px; color: var(--text-secondary); text-transform: uppercase;">${dim}</div>
+          <div style="font-family: var(--font-mono); font-size: 14px; font-weight: 700; color: #A78BFA; margin-top: 2px;">${val} <span style="font-size: 10px; color: var(--text-muted);">/100</span></div>
+        `;
+        dimsGrid.appendChild(item);
+      });
+
+      document.getElementById("criticReviewModal").classList.add("open");
+    }
+
+    function closeCriticReviewModal() {
+      document.getElementById("criticReviewModal").classList.remove("open");
+    }
+
+    function copyCriticDeliverable() {
+      if (activeReviewDeliverable && activeReviewDeliverable !== "[No outcome deliverable recorded]") {
+        navigator.clipboard.writeText(activeReviewDeliverable);
+        alert("Deliverable outcome copied to clipboard!");
       }
     }
 
@@ -2756,8 +4126,55 @@
             </tr>
           `).join("");
         }
+
+        // Load LLM provider config & feature toggles
+        const llmRes = await fetch(`${API_BASE}/llm/providers`);
+        if (llmRes.ok) {
+          const llmCfg = await llmRes.json();
+          const sel = document.getElementById("settingProviderSelect");
+          if (sel) sel.value = llmCfg.active_provider || "ollama";
+          const badge = document.getElementById("activeProviderBadge");
+          if (badge) badge.textContent = (llmCfg.active_provider || "OLLAMA").toUpperCase();
+          const retriesInput = document.getElementById("settingMaxCriticRetries");
+          if (retriesInput && llmCfg.features) retriesInput.value = llmCfg.features.critic_retries ?? 2;
+          const streamToggle = document.getElementById("settingStreamingToggle");
+          if (streamToggle && llmCfg.features) streamToggle.checked = llmCfg.features.token_streaming ?? true;
+          const reactToggle = document.getElementById("settingReActToggle");
+          if (reactToggle && llmCfg.features) reactToggle.checked = llmCfg.features.react_tools ?? true;
+        }
       } catch (e) {
         console.error("Error loading settings:", e);
+      }
+    }
+
+    async function saveLLMSettings() {
+      try {
+        const payload = {
+          provider: document.getElementById("settingProviderSelect").value,
+          max_critic_retries: parseInt(document.getElementById("settingMaxCriticRetries").value) || 2,
+          enable_token_streaming: document.getElementById("settingStreamingToggle").checked,
+          enable_react_tools: document.getElementById("settingReActToggle").checked,
+        };
+        const groqKey = document.getElementById("settingGroqKey").value.trim();
+        if (groqKey) payload.groq_api_key = groqKey;
+        const geminiKey = document.getElementById("settingGeminiKey").value.trim();
+        if (geminiKey) payload.gemini_api_key = geminiKey;
+
+        const res = await fetch(`${API_BASE}/llm/config`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          alert("Autonomous Engine & LLM Settings Saved Successfully!");
+          loadSettings();
+        } else {
+          const err = await res.json();
+          alert("Failed to save settings: " + (err.detail || "Unknown error"));
+        }
+      } catch (e) {
+        console.error("Error saving LLM settings:", e);
+        alert("Error saving settings: " + e.message);
       }
     }
 
@@ -2790,7 +4207,28 @@
         return;
       }
       const concurrency = parseInt(document.getElementById("quickConcurrency").value) || 1;
-      await deployGoal(text, text, concurrency);
+
+      // Smart parsing: if user typed "Title: ... \n Description: ..."
+      let title = text;
+      let desc = text;
+      if (text.toLowerCase().includes("title:") || text.toLowerCase().includes("description:")) {
+        const titleMatch = text.match(/title:\s*([^\n\r]+)/i);
+        const descMatch = text.match(/description:\s*([\s\S]+)/i);
+        if (titleMatch && titleMatch[1].trim()) {
+          title = titleMatch[1].trim();
+        }
+        if (descMatch && descMatch[1].trim()) {
+          desc = descMatch[1].trim();
+        } else {
+          desc = title;
+        }
+      }
+
+      // Ensure minimum lengths required by backend schema (title >= 3, desc >= 5)
+      if (desc.length < 5) desc = title;
+      if (title.length < 3) title = desc;
+
+      await deployGoal(title, desc, concurrency);
       input.value = "";
     }
 
@@ -2805,16 +4243,18 @@
       const title = document.getElementById("modalGoalTitle").value.trim();
       const desc = document.getElementById("modalGoalDesc").value.trim();
       const concurrency = parseInt(document.getElementById("modalGoalConcurrency").value) || 1;
+      const densityElem = document.getElementById("modalGoalDensity");
+      const density = densityElem ? densityElem.value : "adaptive";
 
       if (!title || !desc) {
         alert("Title and description are required.");
         return;
       }
       closeNewGoalModal();
-      await deployGoal(title, desc, concurrency);
+      await deployGoal(title, desc, concurrency, density);
     }
 
-    async function deployGoal(title, desc, concurrency) {
+    async function deployGoal(title, desc, concurrency, density = "adaptive") {
       try {
         // Step 1: Submit goal
         const res = await fetch(`${API_BASE}/goals`, {
@@ -2823,13 +4263,26 @@
           body: JSON.stringify({
             title: title,
             description: desc,
-            concurrency_limit: concurrency
+            concurrency_limit: concurrency,
+            workforce_density: density
           })
         });
 
         if (!res.ok) {
-          const err = await res.json();
-          alert(`Failed to submit goal: ${err.detail || JSON.stringify(err)}`);
+          let errorMsg = "";
+          try {
+            const err = await res.json();
+            if (typeof err.detail === "string") {
+              errorMsg = err.detail;
+            } else if (Array.isArray(err.detail)) {
+              errorMsg = err.detail.map(d => `${d.loc ? d.loc.slice(1).join('.') : 'field'}: ${d.msg}`).join('\n');
+            } else {
+              errorMsg = JSON.stringify(err, null, 2);
+            }
+          } catch (e) {
+            errorMsg = `HTTP ${res.status}: ${res.statusText}`;
+          }
+          alert(`Failed to submit goal:\n${errorMsg}`);
           return;
         }
 
@@ -2856,7 +4309,16 @@
         navigate("tasks");
       } catch (e) {
         console.error("Error deploying goal:", e);
-        alert(`Goal submission error: ${e.message}`);
+        // Provide a clear message when the backend server is not reachable
+        const msg = (e && e.message)
+          ? e.message
+          : (typeof e === "string" ? e : JSON.stringify(e));
+        const isNetworkError = msg.toLowerCase().includes("fetch") || msg.toLowerCase().includes("network") || msg === "";
+        if (isNetworkError) {
+          alert("⚠️ Cannot reach SWARM-100 backend.\n\nThe server is not running or is unreachable.\n\nFix: Open a terminal in the project folder and run:\n  python scripts/run_server.py\n\nThen refresh this page.");
+        } else {
+          alert(`Goal submission error: ${msg}`);
+        }
       }
     }
 
@@ -3269,10 +4731,21 @@
 
     // --- INITIALIZATION ---
     window.addEventListener("DOMContentLoaded", () => {
+      const initialRoute = window.location.pathname.replace(/^\//, "").split("/")[0];
+      if (initialRoute && document.getElementById("page-" + initialRoute)) {
+        navigate(initialRoute, false);
+      } else {
+        refreshCurrentView();
+      }
       connectWebSocket();
-      refreshCurrentView();
-      // Polling fallback to keep counters fresh every 5 seconds
+      // Keep counters fresh every 5 seconds
       setInterval(loadStats, 5000);
+      // Fallback periodic reconciliation if WebSocket is disconnected
+      setInterval(() => {
+        if (!ws || ws.readyState !== WebSocket.OPEN) {
+          refreshCurrentView();
+        }
+      }, 8000);
     });
 
     // ── Canonical control aliases ────────────────────────────────

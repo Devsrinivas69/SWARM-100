@@ -35,6 +35,15 @@ def mock_llm_service_for_sandbox_tests(monkeypatch):
     from backend.core.llm_service import llm_service, LLMResponse, LLMTelemetry
 
     async def _sandbox_test_chat(system_prompt, user_message, upstream_context=None, json_mode=False, **kwargs):
+        on_token = kwargs.get("on_token")
+        if on_token:
+            import asyncio
+            for word in ["Autonomous ", "workforce ", "verified."]:
+                if asyncio.iscoroutinefunction(on_token):
+                    await on_token(word)
+                else:
+                    on_token(word)
+
         content = f"### [Qwen3 4B Deliverable]\nExecuted for: {user_message[:70]}...\nDeliverable formulated compliant with SWARM-100 specifications."
         if json_mode:
             content = json.dumps({"status": "completed", "score": 88.0, "feedback": "Audited and verified."})

@@ -78,7 +78,7 @@ def temp_workspace():
 class TestToolRegistryMetadata:
     def test_exactly_nine_initial_tools_registered(self):
         tools = tool_registry.list_tools()
-        assert len(tools) == 9
+        assert len(tools) == 11
 
         tool_ids = {t["id"] for t in tools}
         expected_ids = {
@@ -91,6 +91,8 @@ class TestToolRegistryMetadata:
             "document_summarizer",
             "project_inspector",
             "restricted_code_tester",
+            "web_search",
+            "web_scraper",
         }
         assert tool_ids == expected_ids
 
@@ -576,7 +578,7 @@ class TestOrchestratorToolGatewayAndAPIs:
         res = client.get("/api/v1/tools")
         assert res.status_code == 200
         tools = res.json()
-        assert len(tools) == 9
+        assert len(tools) == 11
 
     def test_api_inspect_tool(self, client: TestClient):
         res = client.get("/api/v1/tools/calculator")

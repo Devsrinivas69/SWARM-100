@@ -14,9 +14,11 @@ def get_db_path(override_path: Optional[Path] = None) -> Path:
 def get_connection(override_path: Optional[Path] = None) -> Generator[sqlite3.Connection, None, None]:
     db_file = get_db_path(override_path)
     db_file.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(str(db_file), check_same_thread=False)
+    conn = sqlite3.connect(str(db_file), check_same_thread=False, timeout=10.0)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
+    conn.execute("PRAGMA journal_mode = WAL")
+    conn.execute("PRAGMA busy_timeout = 10000")
     try:
         yield conn
     finally:
@@ -39,6 +41,14 @@ def init_db(override_path: Optional[Path] = None) -> None:
             conn.execute("ALTER TABLE tasks ADD COLUMN tokens_used INTEGER NOT NULL DEFAULT 0")
         if "latency_ms" not in cols:
             conn.execute("ALTER TABLE tasks ADD COLUMN latency_ms REAL NOT NULL DEFAULT 0.0")
+        if "review_score" not in cols:
+            conn.execute("ALTER TABLE tasks ADD COLUMN review_score REAL DEFAULT NULL")
+        if "review_feedback" not in cols:
+            conn.execute("ALTER TABLE tasks ADD COLUMN review_feedback TEXT DEFAULT NULL")
+        if "critic_id" not in cols:
+            conn.execute("ALTER TABLE tasks ADD COLUMN critic_id TEXT DEFAULT NULL")
+        if "dimensions" not in cols:
+            conn.execute("ALTER TABLE tasks ADD COLUMN dimensions TEXT DEFAULT NULL")
 
         conn.commit()
 

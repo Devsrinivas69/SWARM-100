@@ -21,12 +21,16 @@ def submit_goal(payload: GoalCreate):
     """
     Accepts arbitrary natural language goals, classifies the domain, builds
     a structured DAG of independent and dependent subtasks, and assigns specialist agents.
+    Automatically starts execution in the background.
     """
     res = orchestrator.submit_goal(
         title=payload.title,
         description=payload.description,
-        concurrency_limit=payload.concurrency_limit
+        concurrency_limit=payload.concurrency_limit,
+        workforce_density=payload.workforce_density or "adaptive"
     )
+    # Launch execution in background task safely
+    orchestrator.start_goal_execution(res["goal_id"])
     return res
 
 @router.get("/goals", summary="List goals")
@@ -52,6 +56,7 @@ def get_goal_status(goal_id: str):
 async def run_goal(goal_id: str):
     """
     Runs the asynchronous worker pool for a goal through to synthesis and critic verification.
+    Awaits active background task or dispatches execution, returning final completed deliverable.
     """
     goal = orchestrator.queue.get_goal(goal_id)
     if not goal:
@@ -60,8 +65,11 @@ async def run_goal(goal_id: str):
             detail=f"Goal '{goal_id}' not found."
         )
 
-    result = await orchestrator.run_goal(goal_id)
-    return result
+    existing_task = orchestrator._running_goals.get(goal_id)
+    if existing_task and not existing_task.done():
+        return await existing_task
+
+    return await orchestrator.run_goal(goal_id)
 
 @router.post("/goals/{goal_id}/pause", summary="Pause goal execution")
 def pause_goal(goal_id: str):

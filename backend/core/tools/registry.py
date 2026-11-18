@@ -31,6 +31,8 @@ from backend.core.tools.implementations.datetime_tool import DateTimeTool
 from backend.core.tools.implementations.document_summarizer import DocumentSummarizerTool
 from backend.core.tools.implementations.project_inspector import ProjectInspectorTool
 from backend.core.tools.implementations.restricted_code_tester import RestrictedCodeTesterTool
+from backend.core.tools.implementations.web_scraper import WebScraperTool
+from backend.core.tools.implementations.web_search import WebSearchTool
 from backend.core.tools.implementations.workspace_file_creator import WorkspaceFileCreatorTool
 from backend.core.tools.implementations.workspace_file_reader import WorkspaceFileReaderTool
 from backend.database import get_connection
@@ -56,6 +58,8 @@ class ToolRegistry:
             DocumentSummarizerTool(),
             ProjectInspectorTool(),
             RestrictedCodeTesterTool(),
+            WebSearchTool(),
+            WebScraperTool(),
         ]
         for t in default_tools:
             self.register_tool(t)

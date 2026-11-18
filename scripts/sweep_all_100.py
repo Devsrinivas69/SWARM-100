@@ -69,45 +69,18 @@ async def run_sweep(concurrency: int = 1, sample_mode: bool = False):
         )
 
     print(f"[+] Enqueued {len(target_agents)} tasks into persistent SQLite queue.")
-    print(f"[+] Launching Worker Pool (concurrency = {concurrency})...")
-    print(f"[*] Open http://localhost:8000/ to view all agents active in real time!\n")
+    print(f"[+] Launching Orchestrator execution loop (concurrency = {concurrency})...")
+    print(f"[*] Open http://localhost:8000/tasks to view all agents active in real time!\n")
 
-    pool = WorkerPool(queue=queue, concurrency_limit=concurrency)
+    from backend.core.orchestrator import orchestrator
     t0 = time.time()
-
-    completed = 0
-    failed = 0
-
-    async def _on_progress(event_type: str, data: Dict[str, Any]):
-        nonlocal completed, failed
-        if "completed" in event_type:
-            completed += 1
-            print(f"  [✓] ({completed:03d}/100) Completed: {data.get('agent_id')} - {data.get('title', '')[:45]}")
-        elif "failed" in event_type:
-            failed += 1
-            print(f"  [✗] ({completed + failed:03d}/100) Failed: {data.get('agent_id')} - {data.get('error', '')}")
-
-    # Hook listener to pool
-    original_execute = pool._execute_task
-
-    async def _monitored_execute(task):
-        res = await original_execute(task)
-        if res.get("status") == "completed":
-            await _on_progress("task_completed", res)
-        else:
-            await _on_progress("task_failed", res)
-        return res
-
-    pool._execute_task = _monitored_execute
-
-    await pool.execute_pool(goal_id)
+    res = await orchestrator.run_goal(goal_id)
     duration = round(time.time() - t0, 1)
 
     print("\n" + "=" * 70)
     print(f"  SWEEP COMPLETED in {duration}s")
-    print(f"  Total Tasks Processed: {completed + failed}")
-    print(f"  Successful Agents:     {completed}")
-    print(f"  Failed Tasks:          {failed}")
+    print(f"  Goal Status:       {res.get('status')}")
+    print(f"  Review Score:      {res.get('review_score')}/100")
     print("=" * 70)
 
 if __name__ == "__main__":
